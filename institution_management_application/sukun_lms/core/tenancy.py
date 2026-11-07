@@ -21,7 +21,7 @@ def institution_path(model):
         if 'external_institution_id' in names:
             return prefix + 'external_institution_id'
         for field in current._meta.fields:
-            if field.is_relation and field.related_model:
+            if field.is_relation and field.related_model and field.related_model._meta.label_lower != 'accounts.user':
                 queue.append((field.related_model, prefix + field.name + '__'))
     return None
 

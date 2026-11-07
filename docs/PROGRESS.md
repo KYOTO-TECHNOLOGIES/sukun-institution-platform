@@ -30,3 +30,10 @@ Each completed feature is committed and pushed independently. Known limitations 
 - Added marketing, admissions and HR roles; UI permissions now come from the API.
 - Verification: 23 backend tests pass, including enrollment idempotency and marketing role restrictions.
 
+
+## Learning and family portal
+- Course authoring, ordered lessons, resource links, enrollments, assignments, grading, quiz questions and automatic scoring.
+- Student/parent portal for learning, homework, fees, attendance, published results and addressed notices.
+- Teachers are limited to their assigned courses; guardians can review but cannot submit student work.
+- Verified lesson completion idempotency, hidden drafts/answers, quiz attempt limits, grading bounds and learner isolation (7 learning regression tests).
+

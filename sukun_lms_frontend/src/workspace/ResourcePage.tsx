@@ -80,7 +80,7 @@ export default function ResourcePage() {
     if(!config)return <p>Workspace not found.</p>;
     return <PageWrapper title={config.title}><Page container='fluid'><div className='workspace'>
         <header className='workspace-heading'><div><div className='workspace-eyebrow'>SUKUN / INSTITUTION WORKSPACE</div><h1>{config.title}</h1><p>{config.subtitle}</p></div>
-            {canWrite&&<button className='workspace-primary' onClick={()=>open(null)}>+ Add {name==='enquiries'?'enquiry':'record'}</button>}</header>
+            {canWrite&&!config.noCreate&&<button className='workspace-primary' onClick={()=>open(null)}>+ Add {name==='enquiries'?'enquiry':'record'}</button>}</header>
         {notice&&<div className='workspace-notice' role='status'>{notice}<button onClick={()=>setNotice('')} aria-label='Dismiss notification'>×</button></div>}
         <section className='workspace-panel'><div className='workspace-toolbar'><input aria-label='Search records' placeholder='Search records…' value={search} onChange={e=>setSearch(e.target.value)}/><span>{count} records</span><button onClick={()=>list.refetch()}>Refresh</button></div>
         {list.isError?<div className='workspace-error' role='alert'>{errorMessage(list.error)} <button onClick={()=>list.refetch()}>Try again</button></div>:list.isLoading?<div className='workspace-empty'>Loading records…</div>:<>
@@ -89,7 +89,7 @@ export default function ResourcePage() {
         {canWrite&&<td className='workspace-row-actions'>{row.status!=='ENROLLED'&&<button onClick={()=>open(row)}>Edit</button>}
             {(config.actions||[]).filter(a=>!a.visible||a.visible(row,userData.user_type)).map(a=><button key={a.label} onClick={()=>open(row,a)}>{a.label}</button>)}
             {!config.noDelete&&<button className='workspace-danger' onClick={()=>{setError('');setRemoving(row);}}>Delete</button>}</td>}</tr>)}</tbody></table></div>
-        {!rows.length&&<div className='workspace-empty'><h3>{query?'No matching records':'Ready for your first record'}</h3><p>{query?'Try another name or keyword.':config.subtitle}</p>{canWrite&&!query&&<button onClick={()=>open(null)}>Add your first record</button>}</div>}
+        {!rows.length&&<div className='workspace-empty'><h3>{query?'No matching records':'Ready for your first record'}</h3><p>{query?'Try another name or keyword.':config.subtitle}</p>{canWrite&&!config.noCreate&&!query&&<button onClick={()=>open(null)}>Add your first record</button>}</div>}
         <footer className='workspace-pagination'><span>{count?Math.min(page*15+1,count):0}–{Math.min((page+1)*15,count)} of {count}</span><button disabled={!page} onClick={()=>setPage(p=>p-1)}>Previous</button><button disabled={(page+1)*15>=count} onClick={()=>setPage(p=>p+1)}>Next</button></footer></>}
         </section>
         {editing!==undefined&&<div className='workspace-modal-backdrop'><section className='workspace-modal' role='dialog' aria-modal='true' aria-labelledby='workspace-dialog-title'>

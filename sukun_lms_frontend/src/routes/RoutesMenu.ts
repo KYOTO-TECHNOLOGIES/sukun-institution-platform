@@ -233,6 +233,7 @@ export const allRoutesObject: Record<string, RouteMenuItem & { path: string }> =
  * Sidebar-visible routes.
  */
 export const AdminRoutes: Record<string, RouteMenuItem> = {
+    learnerPortal:{id:'learnerPortal',text:'My learning & family',path:'/portal',icon:'School',subMenu:null,permissionKey:'portal_read'},
     ...Object.fromEntries(Object.entries(resources).map(([key,c])=>[key,{id:key,text:c.title,path:'/workspace/'+key,icon:c.icon,subMenu:null,permissionKey:(c.permission+'_read') as keyof PagePermissions}])),
 	dashboard: {
 		id: 'dashboard',

@@ -126,3 +126,14 @@ class LogoutView(CsrfProtectedAPIView):
 class MeView(APIView):
     def get(self, request):
         return Response(AuthenticatedUserSerializer(request.user).data, status=status.HTTP_200_OK)
+
+
+class TeachingStaffView(APIView):
+    def get(self, request):
+        from core.permissions import ADMIN_ROLES
+        if request.user.user_type not in ADMIN_ROLES | {'TEACHER'} and not request.user.is_superuser:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied()
+        users = User.objects.filter(institution=request.user.institution, is_active=True,
+            user_type__in=['TEACHER','PRINCIPAL','INSTITUTION_ADMIN'])
+        return Response([{'id':u.pk,'full_name':u.full_name or u.phone_number} for u in users])
