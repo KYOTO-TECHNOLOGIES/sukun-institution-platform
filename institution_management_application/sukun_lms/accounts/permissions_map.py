@@ -1,4 +1,4 @@
-from core.permissions import ADMIN_ROLES, ROLE_MODULES
+from core.permissions import ADMIN_ROLES, ROLE_MODULES, can_access
 
 
 def page_permissions(user):
@@ -8,7 +8,8 @@ def page_permissions(user):
         'classes': 'academics', 'students': 'students', 'staff': 'staff', 'finance': 'finance',
         'library': 'library', 'communications': 'communications', 'admissions': 'admissions',
         'learning': 'learning', 'attendance': 'attendance', 'tasks': 'tasks',
-        'examinations': 'examinations', 'operations': 'operations',
+        'examinations': 'examinations', 'expenses':'expenses', 'payroll':'payroll', 'assets':'assets',
+        'transport':'transport', 'hostel':'hostel', 'support':'support', 'frontdesk':'frontdesk',
         'sessions': 'exam_seating', 'schedules': 'exam_seating', 'rooms': 'exam_seating',
         'rules': 'exam_seating', 'arrangements': 'exam_seating', 'malpractice': 'exam_seating',
     }
@@ -16,6 +17,8 @@ def page_permissions(user):
               'users_read': admin, 'users_write': admin, 'portal_read': user.user_type in {'STUDENT', 'PARENT'},
               'reports_read': admin, 'audit_read': admin}
     for key, module in modules.items():
-        result[key + '_read'] = admin or module in read
-        result[key + '_write'] = admin or module in write
+        result[key + '_read'] = can_access(user,module)
+        result[key + '_write'] = can_access(user,module,True)
+    result['leave_read']=can_access(user,'staff')
+    result['leave_write']=can_access(user,'staff',True) or user.user_type=='TEACHER'
     return result

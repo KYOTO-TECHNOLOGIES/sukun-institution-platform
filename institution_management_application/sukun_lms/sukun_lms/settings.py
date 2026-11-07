@@ -27,6 +27,7 @@ SECRET_KEY = env(
     default='django-insecure-change-me-before-production',
 )
 DEBUG = env('DEBUG')
+ALLOW_INSTITUTION_REGISTRATION = env.bool('ALLOW_INSTITUTION_REGISTRATION', default=DEBUG)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
@@ -57,14 +58,17 @@ INSTALLED_APPS = [
     'communications',
     'admissions',
     'learning',
+    'operations',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'core.security.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'core.audit.AuditMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -115,7 +119,7 @@ PASSWORD_HASHERS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = env('TIME_ZONE', default='Asia/Kolkata')
 USE_I18N = True
 USE_TZ = True
 
@@ -173,7 +177,22 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=3600)
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = False
-    SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
+    SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=True)
+    SECURE_REDIRECT_EXEMPT = [r'^health/$']
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
+
+# Production processes require an explicitly generated signing secret.
+if not DEBUG and (len(SECRET_KEY)<50 or SECRET_KEY.startswith(('django-insecure','change-me','replace-with'))):
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured('Set a strong SECRET_KEY of at least 50 characters for production.')
+if env.bool('TRUST_PROXY_SSL_HEADER', default=False):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_REFERRER_POLICY = 'same-origin'
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
+DATABASES['default']['CONN_MAX_AGE'] = env.int('DB_CONN_MAX_AGE', default=60)
+LOGGING = {'version':1,'disable_existing_loggers':False,
+           'handlers':{'console':{'class':'logging.StreamHandler'}},
+           'root':{'handlers':['console'],'level':env('LOG_LEVEL',default='INFO')}}

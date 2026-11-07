@@ -74,7 +74,7 @@ class ApplicationViewSet(SearchViewSet):
     @transaction.atomic
     def review(self, request, pk=None):
         self.require_admissions_role()
-        application = self.get_queryset().select_for_update().get(pk=self.get_object().pk)
+        application = self.get_queryset().select_for_update(of=('self',)).get(pk=self.get_object().pk)
         target = request.data.get('status')
         allowed = {'SUBMITTED': {'UNDER_REVIEW', 'APPROVED', 'REJECTED'},
                    'UNDER_REVIEW': {'APPROVED', 'REJECTED'}, 'REJECTED': {'UNDER_REVIEW'},
@@ -95,7 +95,7 @@ class ApplicationViewSet(SearchViewSet):
     @transaction.atomic
     def enroll(self, request, pk=None):
         self.require_admissions_role()
-        application = self.get_queryset().select_for_update().get(pk=self.get_object().pk)
+        application = self.get_queryset().select_for_update(of=('self',)).get(pk=self.get_object().pk)
         if application.status == 'ENROLLED':
             return Response(self.get_serializer(application).data)
         if application.status != 'APPROVED':

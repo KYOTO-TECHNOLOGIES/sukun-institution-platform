@@ -20,7 +20,8 @@ class CsrfView(APIView):
     authentication_classes = []
 
     def get(self, request):
-        return Response({'csrfToken': get_token(request)})
+        from django.conf import settings
+        return Response({'csrfToken': get_token(request), 'registration_enabled':settings.ALLOW_INSTITUTION_REGISTRATION})
 
 
 from institutions.models import Institution
@@ -42,6 +43,10 @@ class RegisterInstitutionView(CsrfProtectedAPIView):
     def post(self, request):
         from django.db import IntegrityError
         from .registration import InstitutionRegistrationSerializer
+        from django.conf import settings
+        if not settings.ALLOW_INSTITUTION_REGISTRATION:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Registration is managed by the platform administrator.')
         serializer = InstitutionRegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
@@ -147,3 +152,24 @@ class DirectoryView(APIView):
             raise PermissionDenied()
         users = User.objects.filter(institution=request.user.institution, is_active=True).order_by('first_name')
         return Response([{'id':u.pk,'full_name':u.full_name or u.phone_number,'user_type':u.user_type} for u in users])
+
+
+class ChangePasswordView(APIView):
+    def post(self,request):
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        from rest_framework.exceptions import ValidationError
+        from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+        from django.db import transaction
+        if not request.user.check_password(request.data.get('current_password','')):
+            raise ValidationError({'current_password':'Current password is incorrect.'})
+        password=request.data.get('new_password','')
+        try: validate_password(password,request.user)
+        except DjangoValidationError as exc: raise ValidationError({'new_password':exc.messages})
+        with transaction.atomic():
+            request.user.set_password(password); request.user.save()
+            for token in OutstandingToken.objects.filter(user=request.user):
+                BlacklistedToken.objects.get_or_create(token=token)
+        response=Response({'message':'Password changed. Sign in again with the new password.'})
+        clear_auth_cookies(response)
+        return response

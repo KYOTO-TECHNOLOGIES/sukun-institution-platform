@@ -2,8 +2,18 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from core.audit import AuditViewSet
+from core.reports import InstitutionDashboard, ReportExport
+from core.health import health
+from core.media import ProtectedMediaView
 
 urlpatterns = [
+    path('health/', health),
+    path('media/<path:filename>', ProtectedMediaView.as_view()),
+    path('api/reports/overview/', InstitutionDashboard.as_view()),
+    path('api/reports/export/<str:kind>/', ReportExport.as_view()),
+    path('api/audit/', AuditViewSet.as_view({'get':'list'})),
+    path('api/operations/', include('operations.urls')),
     path('api/portal/', include('learning.portal_urls')),
     path('api/learning/', include('learning.urls')),
     path('api/admissions/', include('admissions.urls')),
@@ -23,5 +33,4 @@ urlpatterns = [
     path('api/communications/', include('communications.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

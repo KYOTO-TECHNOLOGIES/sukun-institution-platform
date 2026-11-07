@@ -45,3 +45,10 @@ Each completed feature is committed and pushed independently. Known limitations 
 - Added domain checks for class membership, timetable conflicts, exam marks and date ranges.
 - Verification: 35 backend tests pass. Updated TypeScript DOM library configuration for browser form APIs.
 
+
+## Institutional operations and accountability
+- Expenses and payroll with administrator approval and accountant payment recording; immutable approved records.
+- Transport and hostel capacity checks, assets, support tickets, front-desk queue transitions, staff leave and attendance.
+- Role-specific dashboards, follow-up and fee alerts, CSV exports and audit history.
+- Per-user permission overrides, password-change revocation, private attachment access, protected historical records, bulk class attendance.
+- Verification: 46 backend tests pass, including new operational/security regressions.

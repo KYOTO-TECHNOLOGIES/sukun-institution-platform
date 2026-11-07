@@ -40,6 +40,9 @@ class TenantSecurityTests(APITestCase):
         self.assertEqual(self.client.get('/api/academics/classes/?id=invalid').status_code, 400)
 
 
+from django.test import override_settings
+
+@override_settings(ALLOW_INSTITUTION_REGISTRATION=True)
 class RegistrationSecurityTests(APITestCase):
     def payload(self):
         return dict(name='New', registration_number='NEW', phone='+919876543210',
@@ -70,3 +73,68 @@ class RegistrationSecurityTests(APITestCase):
         response = client.get('/api/auth/csrf/')
         response = client.post('/api/auth/login/', {}, HTTP_X_CSRFTOKEN=response.data['csrfToken'])
         self.assertEqual(response.status_code, 400)
+
+
+class OperationalIntegrityTests(APITestCase):
+    def setUp(self):
+        from students.models import Student
+        self.inst = institution()
+        self.user = admin(self.inst)
+        self.year, self.cls, self.division = academic_setup(self.inst)
+        student_user = admin(self.inst, '+919876543211', 'STUDENT')
+        self.student = Student.objects.create(user=student_user, institution=self.inst, division=self.division,
+            academic_year=self.year, admission_number='TEST-1', roll_number='1', admission_date='2026-06-01', gender='MALE')
+        self.client.force_authenticate(self.user)
+
+    def test_bulk_attendance_is_atomic_and_overwrites_once(self):
+        from attendance.models import StudentAttendance
+        import uuid
+        url = '/api/attendance/student-attendance/bulk/'
+        body = {'division':str(self.division.pk), 'date':'2026-07-01',
+                'records':[{'student':str(self.student.pk),'status':'PRESENT'}, {'student':str(uuid.uuid4()),'status':'ABSENT'}]}
+        self.assertEqual(self.client.post(url,body,format='json').status_code,400)
+        self.assertEqual(StudentAttendance.objects.count(),0)
+        body['records'] = body['records'][:1]
+        self.assertEqual(self.client.post(url,body,format='json').status_code,200)
+        body['records'][0]['status']='ABSENT'
+        self.assertEqual(self.client.post(url,body,format='json').status_code,200)
+        record=StudentAttendance.objects.get()
+        self.assertEqual(record.status,'ABSENT')
+        self.assertEqual(record.marked_by,self.user)
+
+    def test_student_delete_and_class_overcapacity_are_rejected(self):
+        self.assertEqual(self.client.delete(f'/api/students/students/{self.student.pk}/').status_code,400)
+        self.division.capacity=0; self.division.save()
+        response=self.client.patch(f'/api/students/students/{self.student.pk}/',{'roll_number':'2'})
+        self.assertEqual(response.status_code,400)
+
+    def test_password_change_revokes_existing_access_and_refresh(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        token=RefreshToken.for_user(self.user); access=str(token.access_token)
+        response=self.client.post('/api/auth/change-password/',{'current_password':'StrongPass123!','new_password':'UpdatedSecurePass998!'},format='json')
+        self.assertEqual(response.status_code,200,response.data)
+        self.client.force_authenticate(user=None)
+        self.assertEqual(self.client.get('/api/auth/me/',HTTP_AUTHORIZATION='Bearer '+access).status_code,401)
+        response=self.client.post('/api/auth/refresh/',{'refresh':str(token)},format='json')
+        self.assertEqual(response.status_code,403)
+        self.assertIn('Invalid or expired',str(response.data))
+
+    def test_learner_role_never_inherits_staff_override(self):
+        from core.permissions import can_access
+        student=self.student.user
+        student.permission_overrides={'finance_read':True}
+        self.assertFalse(can_access(student,'finance'))
+
+    def test_private_media_is_not_shared_across_institutions(self):
+        import tempfile
+        from pathlib import Path
+        from django.test import override_settings
+        with tempfile.TemporaryDirectory() as directory, override_settings(MEDIA_ROOT=directory):
+            Path(directory,'avatar.txt').write_text('Private attachment')
+            self.user.profile_picture='avatar.txt';self.user.save()
+            response=self.client.get('/media/avatar.txt')
+            self.assertEqual(response.status_code,200)
+            response.close()
+            other=admin(institution('Other'),'+919876543212')
+            self.client.force_authenticate(other)
+            self.assertEqual(self.client.get('/media/avatar.txt').status_code,404)

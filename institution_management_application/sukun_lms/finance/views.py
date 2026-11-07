@@ -57,7 +57,7 @@ class FeePaymentViewSet(SearchViewSet):
               ('Payment method',payment.payment_method),('Reference',payment.transaction_id or '-'),
               ('Received by',payment.received_by.full_name if payment.received_by else '-')]
         body=''.join('<tr><th>'+escape(str(k))+'</th><td>'+escape(str(v))+'</td></tr>' for k,v in rows)
-        html='<!doctype html><html><head><meta charset="utf-8"><title>Fee receipt</title><style>body{font:16px system-ui;max-width:700px;margin:60px auto;color:#18382f}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:14px;border-bottom:1px solid #ddd}h1{margin-bottom:5px}@media print{button{display:none}}</style></head><body><h1>'+escape(institution.name)+'</h1><p>Fee payment receipt</p><table>'+body+'</table><p>This receipt records a payment received. Any later refund is recorded separately.</p><button onclick="window.print()">Print receipt</button></body></html>'
+        html='<!doctype html><html><head><meta charset="utf-8"><title>Fee receipt</title><style>body{font:16px system-ui;max-width:700px;margin:60px auto;color:#18382f}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:14px;border-bottom:1px solid #ddd}h1{margin-bottom:5px}@media print{button{display:none}}</style></head><body><h1>'+escape(institution.name)+'</h1><p>Fee payment receipt</p><table>'+body+'</table><p>This receipt records a payment received. Any later refund is recorded separately.</p><button id="print-receipt">Print receipt</button><script src="/static/core/receipt.js"></script></body></html>'
         response=HttpResponse(html)
         response['Cache-Control']='private, no-store'
         return response

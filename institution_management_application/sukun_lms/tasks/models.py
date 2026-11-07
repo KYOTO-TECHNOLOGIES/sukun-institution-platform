@@ -27,6 +27,7 @@ class DailyTask(BaseModel):
     surah_reference = models.CharField(max_length=100, blank=True, null=True)
     ayah_from = models.IntegerField(null=True, blank=True)
     ayah_to = models.IntegerField(null=True, blank=True)
+    max_marks = models.DecimalField(max_digits=7, decimal_places=2, default=100)
     is_mandatory = models.BooleanField(default=True)
 
     class Meta:

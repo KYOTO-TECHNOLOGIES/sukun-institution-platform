@@ -6,6 +6,7 @@ from .models import Achievement, DisciplineRecord, HifzProgress, ParentGuardian,
 from rest_framework import serializers
 
 class StudentSerializer(serializers.ModelSerializer):
+    division_name = serializers.CharField(source="division.__str__", read_only=True)
     full_name = serializers.CharField(source='user.get_full_name', read_only=True)
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)

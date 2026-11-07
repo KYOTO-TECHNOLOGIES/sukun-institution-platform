@@ -27,6 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name',
             'full_name',
             'user_type',
+            'permission_overrides',
             'address',
             'profile_picture',
             'institution',
@@ -46,7 +47,18 @@ class UserSerializer(serializers.ModelSerializer):
             'is_phone_verified': {'required': False},
         }
 
+    def validate_permission_overrides(self,value):
+        from core.permissions import MODULES
+        allowed={module+'_'+action for module in MODULES for action in ['read','write']}
+        if not isinstance(value,dict) or any(key not in allowed or not isinstance(flag,bool) for key,flag in value.items()):
+            raise serializers.ValidationError('Use supported module read/write permissions with boolean values.')
+        return value
+
     def validate(self, attrs):
+        if 'email' in attrs and not attrs['email']:
+            attrs['email'] = None
+        if attrs.get('permission_overrides',getattr(self.instance,'permission_overrides',{})) and attrs.get('user_type',getattr(self.instance,'user_type','STUDENT')) in {'STUDENT','PARENT'}:
+            raise serializers.ValidationError({'permission_overrides':'Learner accounts cannot receive staff permissions.'})
         if attrs.get('password'):
             try:
                 validate_password(attrs['password'], user=self.instance or User(**{k: v for k, v in attrs.items() if k != 'password'}))

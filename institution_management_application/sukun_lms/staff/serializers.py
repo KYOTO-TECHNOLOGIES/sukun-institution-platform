@@ -16,5 +16,19 @@ class TeacherSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-StaffLeaveRecordSerializer = build_model_serializer(StaffLeaveRecord)
+class StaffLeaveRecordSerializer(serializers.ModelSerializer):
+    teacher_name=serializers.CharField(source='teacher.user.full_name',read_only=True)
+    class Meta:
+        model=StaffLeaveRecord; fields='__all__'; read_only_fields=('status','approved_by','days_count')
+    def validate(self,attrs):
+        start=attrs.get('from_date',getattr(self.instance,'from_date',None))
+        end=attrs.get('to_date',getattr(self.instance,'to_date',None))
+        if start and end:
+            if end<start: raise serializers.ValidationError({'to_date':'End date must follow the start date.'})
+            attrs['days_count']=(end-start).days+1
+            teacher=attrs.get('teacher',getattr(self.instance,'teacher',None))
+            if StaffLeaveRecord.objects.filter(teacher=teacher,status__in=['PENDING','APPROVED'],from_date__lte=end,to_date__gte=start).exclude(pk=getattr(self.instance,'pk',None)).exists():
+                raise serializers.ValidationError('This request overlaps an existing leave request.')
+        return attrs
+
 StaffNoteSerializer = build_model_serializer(StaffNote)

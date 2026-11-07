@@ -4,4 +4,9 @@ from .models import StudentAttendance, TeacherAttendance
 
 
 StudentAttendanceSerializer = build_model_serializer(StudentAttendance)
-TeacherAttendanceSerializer = build_model_serializer(TeacherAttendance)
+from rest_framework import serializers
+class TeacherAttendanceSerializer(serializers.ModelSerializer):
+    teacher_name=serializers.CharField(source='teacher.user.full_name',read_only=True)
+    class Meta:
+        model=TeacherAttendance; fields='__all__'; read_only_fields=('marked_by',)
+

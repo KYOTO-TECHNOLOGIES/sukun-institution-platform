@@ -17,6 +17,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('MARKETING', 'Marketing'),
         ('ADMISSIONS', 'Admissions Officer'),
         ('HR', 'Human Resources'),
+        ('FRONT_DESK', 'Front Desk'),
         ('LIBRARIAN', 'Librarian'),
         ('PARENT', 'Parent'),
         ('STUDENT', 'Student'),
@@ -27,6 +28,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     user_type = models.CharField(max_length=20, choices=USER_TYPES, default='STUDENT')
+    permission_overrides = models.JSONField(default=dict, blank=True)
     address = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     institution = models.ForeignKey('institutions.Institution', on_delete=models.CASCADE, related_name='users', null=True, blank=True)
