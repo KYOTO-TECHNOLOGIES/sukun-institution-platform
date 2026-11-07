@@ -23,7 +23,7 @@ const groups:[string,[string,string,string][]][]=[
 
 class ErrorBoundary extends React.Component<{children:React.ReactNode},{failed:boolean}>{
  state={failed:false};static getDerivedStateFromError(){return {failed:true};}
- render(){return this.state.failed?<div className='workspace'><div className='workspace-empty'><h2>This page couldnâ€™t be opened.</h2><p>Reload the page to try again.</p><button onClick={()=>window.location.reload()}>Reload</button></div></div>:this.props.children;}
+ render(){return this.state.failed?<div className='workspace'><div className='workspace-empty'><h2>This page couldn’t be opened.</h2><p>Reload the page to try again.</p><button onClick={()=>window.location.reload()}>Reload</button></div></div>:this.props.children;}
 }
 
 export default function Shell(){
@@ -38,16 +38,16 @@ export default function Shell(){
  return <div className='sukun-shell'>
   {mobile&&<button className='sidebar-shade' aria-label='Close navigation' onClick={()=>setMobile(false)}/>}
   <aside className={'sukun-sidebar '+(mobile?'is-open':'')}><Link to='/' className='sukun-wordmark'><span className='sukun-mark'>s</span>sukun<span className='wordmark-dot'>.</span></Link>
-   <div className='sidebar-workspace'><span className='workspace-avatar'>{(userData.full_name||'S').slice(0,1).toUpperCase()}</span><div><strong>Institution workspace</strong><small>{userData.user_type.replace(/_/g,' ').toLowerCase()}</small></div><span>âŒ„</span></div>
-   <input className='sidebar-search' aria-label='Find a page' placeholder='Find a pageâ€¦' value={find} onChange={e=>setFind(e.target.value)}/>
-   <nav aria-label='Main navigation' className='sukun-nav'><NavLink to='/' end className='overview-link'><span>â–¦</span> Overview</NavLink>{can('portal_read')&&<NavLink to='/portal'><span>â—ˆ</span> My learning & family</NavLink>}
+   <div className='sidebar-workspace'><span className='workspace-avatar'>{(userData.full_name||'S').slice(0,1).toUpperCase()}</span><div><strong>Institution workspace</strong><small>{userData.user_type.replace(/_/g,' ').toLowerCase()}</small></div><span>⌄</span></div>
+   <input className='sidebar-search' aria-label='Find a page' placeholder='Find a page…' value={find} onChange={e=>setFind(e.target.value)}/>
+   <nav aria-label='Main navigation' className='sukun-nav'><NavLink to='/' end className='overview-link'><span>▦</span> Overview</NavLink>{can('portal_read')&&<NavLink to='/portal'><span>◈</span> My learning & family</NavLink>}
     {visibleGroups.map(([name,links])=><details key={name} open={!!find||links.some(l=>location.pathname===l[1])||name==='Growth & admissions'}><summary>{name}</summary>{links.map(([label,path])=><NavLink key={path} to={path}><span className='nav-dot'/> {label}</NavLink>)}</details>)}
    </nav>
-   <div className='sidebar-bottom'><Link to='/account'><span className='workspace-avatar'>{(userData.first_name||'U').slice(0,1)}</span><div><strong>{userData.full_name||'My account'}</strong><small>Profile & security</small></div></Link><button aria-label='Sign out' title='Sign out' onClick={logout}>â†—</button></div>
+   <div className='sidebar-bottom'><Link to='/account'><span className='workspace-avatar'>{(userData.first_name||'U').slice(0,1)}</span><div><strong>{userData.full_name||'My account'}</strong><small>Profile & security</small></div></Link><button aria-label='Sign out' title='Sign out' onClick={logout}>↗</button></div>
   </aside>
-  <div className='sukun-main'><header className='sukun-topbar'><button className='mobile-menu' aria-label='Open navigation' onClick={()=>setMobile(true)}>â˜°</button><div><span className='topbar-breadcrumb'>Workspace <span>/</span></span><strong>{title}</strong></div><div className='topbar-right'><span className='live-dot'/>Your institution, connected<Link to='/account' className='workspace-avatar'>{(userData.first_name||'U').slice(0,1).toUpperCase()}</Link></div></header>
-  <main className='sukun-content'><ErrorBoundary key={location.pathname}><Suspense fallback={<div className='workspace'><div className='workspace-empty'>Opening workspaceâ€¦</div></div>}><Routes>{routes.map(route=><Route key={route.path} path={route.path} element={!route.permissionKey||can(route.permissionKey)?route.element:<div className='workspace'><div className='workspace-empty'><h2>You donâ€™t have access to this page.</h2><p>Your administrator can update your permissions.</p><Link to='/'>Return to overview</Link></div></div>}/>)}
-  <Route path='*' element={<div className='workspace'><div className='workspace-empty'><h2>We couldnâ€™t find that page.</h2><Link to='/'>Return to overview</Link></div></div>}/></Routes></Suspense></ErrorBoundary></main>
-  <footer className='sukun-footer'><span>Sukun Â· A little clarity, every day.</span><span>Institution management & learning</span></footer></div><ReactNotifications/><ToastContainer/>
+  <div className='sukun-main'><header className='sukun-topbar'><button className='mobile-menu' aria-label='Open navigation' onClick={()=>setMobile(true)}>☰</button><div><span className='topbar-breadcrumb'>Workspace <span>/</span></span><strong>{title}</strong></div><div className='topbar-right'><span className='live-dot'/>Your institution, connected<Link to='/account' className='workspace-avatar'>{(userData.first_name||'U').slice(0,1).toUpperCase()}</Link></div></header>
+  <main className='sukun-content'><ErrorBoundary key={location.pathname}><Suspense fallback={<div className='workspace'><div className='workspace-empty'>Opening workspace…</div></div>}><Routes>{routes.map(route=><Route key={route.path} path={route.path} element={!route.permissionKey||can(route.permissionKey)?route.element:<div className='workspace'><div className='workspace-empty'><h2>You don’t have access to this page.</h2><p>Your administrator can update your permissions.</p><Link to='/'>Return to overview</Link></div></div>}/>)}
+  <Route path='*' element={<div className='workspace'><div className='workspace-empty'><h2>We couldn’t find that page.</h2><Link to='/'>Return to overview</Link></div></div>}/></Routes></Suspense></ErrorBoundary></main>
+  <footer className='sukun-footer'><span>Sukun · A little clarity, every day.</span><span>Institution management & learning</span></footer></div><ReactNotifications/><ToastContainer/>
  </div>;
 }
