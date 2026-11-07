@@ -1,0 +1,51 @@
+from django.contrib import admin
+
+from .models import (
+    BenchTemplate,
+    ClassProximityRule,
+    ExamAttendance,
+    ExamDay,
+    ExamInstitution,
+    ExamRoom,
+    ExamSeatingArrangement,
+    ExamSession,
+    ExamStudent,
+    ExamSubjectSchedule,
+    LayoutBench,
+    LayoutRow,
+    LayoutSeat,
+    MalpracticeRecord,
+    RoomAssignment,
+    RoomLayout,
+    SeatingRule,
+    StudentSeatAssignment,
+    StudentSeatHistory,
+    TeacherAvailability,
+    TeacherInvigilation,
+)
+
+admin.site.register(
+    [
+        ExamInstitution,
+        ExamStudent,
+        ExamSession,
+        ExamDay,
+        ExamSubjectSchedule,
+        ExamRoom,
+        BenchTemplate,
+        RoomLayout,
+        LayoutRow,
+        LayoutBench,
+        LayoutSeat,
+        ExamSeatingArrangement,
+        RoomAssignment,
+        StudentSeatAssignment,
+        SeatingRule,
+        ClassProximityRule,
+        TeacherInvigilation,
+        TeacherAvailability,
+        StudentSeatHistory,
+        ExamAttendance,
+        MalpracticeRecord,
+    ]
+)

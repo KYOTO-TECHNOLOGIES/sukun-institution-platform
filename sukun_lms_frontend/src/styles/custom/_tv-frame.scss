@@ -1,0 +1,127 @@
+// ─── Standard TV bezel + display ─────────────────────────────────────────────
+// Matches the SignageOS Virtual Screen player chrome.
+
+.std-tv-bezel {
+	box-sizing: border-box;
+	background: linear-gradient(180deg, #2a2c32 0%, #1a1c20 100%);
+	border-radius: 10px;
+	padding: 9px 9px 26px;
+	box-shadow:
+		0 1px 0 rgba(#ffffff, 0.06) inset,
+		0 -1px 0 rgba(#000000, 0.50) inset,
+		0 24px 80px rgba(#000000, 0.55),
+		0 4px 16px rgba(#000000, 0.40);
+	position: relative;
+	width: 100%;
+	max-width: 100%;
+
+	// light mode — slightly softer lift
+	@include dark-mode(true) {
+		box-shadow:
+			0 1px 0 rgba(#ffffff, 0.1) inset,
+			0 20px 60px rgba(#000000, 0.4),
+			0 4px 16px rgba(#000000, 0.25);
+	}
+}
+
+// Decorative stand "strip" at the bottom
+.std-tv-bezel::after {
+	content: '';
+	position: absolute;
+	bottom: 7px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 28%;
+	height: 5px;
+	background: linear-gradient(to right, transparent, rgba(#ffffff, 0.16), transparent);
+	border-radius: 999px;
+	pointer-events: none;
+}
+
+// ─── Screen area ──────────────────────────────────────────────────────────────
+
+.std-tv-screen {
+	position: relative;
+	border-radius: 4px;
+	overflow: hidden;
+	background: #000;
+	width: 100%;
+	height: auto;
+	container-type: size;
+	container-name: tvscreen;
+}
+
+.std-tv-bezel--portrait {
+	max-width: 100%;
+
+	.std-tv-screen {
+		width: 100%;
+		height: auto;
+	}
+}
+
+// ─── Footer bar ───────────────────────────────────────────────────────────────
+
+.std-tv-footer {
+	position: absolute;
+	bottom: 5px;
+	left: 50%;
+	transform: translateX(-50%);
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	color: rgba(#f0f8ff, 0.85);
+	font-size: 10px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	pointer-events: none;
+	z-index: 2;
+}
+
+.std-tv-footer-brand {
+	font-weight: 700;
+	font-size: 9px;
+	letter-spacing: 0.18em;
+	color: rgba(#f0f8ff, 0.75);
+}
+
+.std-tv-footer-led {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: #22c55e;
+	box-shadow: 0 0 5px rgba(#22c55e, 0.8);
+	flex-shrink: 0;
+}
+
+// ─── Flicker animation (desktop only) ─────────────────────────────────────────
+
+@media (min-width: 960px) {
+	.std-tv-bezel--flicker {
+		animation: std-tv-flicker 0.5s ease-in-out infinite alternate;
+	}
+
+	@keyframes std-tv-flicker {
+		0% {
+			box-shadow:
+				0 1px 0 rgba(#ffffff, 0.06) inset,
+				0 -1px 0 rgba(#000000, 0.50) inset,
+				0 0 100px 0 rgba(#c8ebff, 0.35),
+				0 4px 16px rgba(#000000, 0.40);
+		}
+
+		100% {
+			box-shadow:
+				0 1px 0 rgba(#ffffff, 0.06) inset,
+				0 -1px 0 rgba(#000000, 0.50) inset,
+				0 0 72px 0 rgba(#c8dcff, 0.48),
+				0 4px 16px rgba(#000000, 0.35);
+		}
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.std-tv-bezel--flicker {
+		animation: none;
+	}
+}

@@ -1,0 +1,6 @@
+// Zone opacity — multiply background alpha by --tdc-zone-bg-opacity on .tdc root.
+// Default 1 = no change. Text, borders, and decorative lines stay full strength.
+
+@function tdc-zone-a($alpha) {
+	@return calc(#{$alpha} * var(--tdc-zone-bg-opacity, 1));
+}

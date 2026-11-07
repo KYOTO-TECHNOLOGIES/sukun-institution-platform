@@ -1,0 +1,342 @@
+// Modern Queue Board — replaces legacy Crimson Banner visuals (theme id: crimson-banner)
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+
+@keyframes tdc-cb-rotate {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+@keyframes tdc-cb-rotate-rev {
+	from { transform: rotate(360deg); }
+	to { transform: rotate(0deg); }
+}
+
+@keyframes tdc-cb-live-pulse {
+	0%,
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+	50% {
+		transform: scale(1.35);
+		opacity: 0.55;
+	}
+}
+
+@keyframes tdc-cb-token-float {
+	0%,
+	100% { transform: translateY(0); }
+	50% { transform: translateY(-0.08em); }
+}
+
+// ─── Theme variables & base card ─────────────────────────────────────────────
+.tdc--crimson-banner {
+	--tdc-cb-bg: linear-gradient(180deg, #031122 0%, #020817 100%);
+	--tdc-cb-accent: #2196ff;
+	--tdc-cb-live: #19ffb2;
+	// Oversize rings; body overflow:hidden clips to panel edges (header + bottom)
+	--tdc-cb-ring-scale: 1.2;
+
+	--tdc-bg:
+		radial-gradient(circle at 50% 42%, rgba(0, 132, 255, 0.08), transparent 48%),
+		var(--tdc-cb-bg);
+	--tdc-glow-color: transparent;
+	--tdc-text: rgba(255, 255, 255, 0.97);
+	--tdc-text-sub: rgba(255, 255, 255, 0.7);
+	--tdc-text-label: rgba(255, 255, 255, 0.55);
+	--tdc-token-color: #ffffff;
+	--tdc-token-shadow:
+		0 0 0.45em rgba(255, 255, 255, 0.15),
+		0 0 1.2em rgba(0, 153, 255, 0.35);
+	--tdc-border: rgba(255, 255, 255, 0.08);
+	--tdc-badge-bg: linear-gradient(
+		180deg,
+		rgba(255, 255, 255, #{tdc-zone-a(0.03)}),
+		rgba(255, 255, 255, #{tdc-zone-a(0.01)})
+	);
+	--tdc-badge-text: #ffffff;
+	--tdc-badge-border: rgba(255, 255, 255, 0.06);
+
+	font-family: 'Inter', system-ui, sans-serif;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	box-shadow:
+		0 0.6em 2.4em rgba(0, 0, 0, 0.55),
+		inset 0 0 1.4em rgba(255, 255, 255, 0.02);
+	overflow: hidden;
+	isolation: isolate;
+
+	.tdc__glow {
+		display: none;
+	}
+}
+
+// ─── Rotating rings — centered on token inside .tdc__body (left panel) ───────
+.tdc--crimson-banner .tdc__body {
+	position: relative;
+	container-type: size;
+	overflow: hidden;
+	padding: 0 !important;
+}
+
+.tdc-cb-circles {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	margin: auto;
+	// Fill panel height first; scale up so outer ring meets header/bottom borders
+	height: calc(100% * var(--tdc-cb-ring-scale, 1.2));
+	width: auto;
+	max-width: calc(100% * var(--tdc-cb-ring-scale, 1.2));
+	aspect-ratio: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tdc--crimson-banner .tdc__subtitle,
+.tdc--crimson-banner .tdc__token {
+	position: relative;
+	z-index: 1;
+}
+
+.tdc-cb-circle {
+	position: absolute;
+	border-radius: 50%;
+	box-sizing: border-box;
+}
+
+.tdc-cb-circle--1 {
+	width: 100%;
+	height: 100%;
+	border: 2px solid rgba(0, 153, 255, 0.12);
+	border-top-color: var(--tdc-cb-accent);
+	border-bottom-color: var(--tdc-cb-accent);
+	animation: tdc-cb-rotate 18s linear infinite;
+}
+
+.tdc-cb-circle--2 {
+	width: 80%;
+	height: 80%;
+	border: 1px solid rgba(0, 153, 255, 0.15);
+	border-left-color: #3ea6ff;
+	animation: tdc-cb-rotate-rev 14s linear infinite;
+}
+
+.tdc-cb-circle--3 {
+	width: 62%;
+	height: 62%;
+	border: 1px dashed rgba(0, 153, 255, 0.35);
+	animation: tdc-cb-rotate 20s linear infinite;
+}
+
+.tdc-cb-circle--dots {
+	width: 74%;
+	height: 74%;
+	border: 2px dotted rgba(0, 153, 255, 0.35);
+	animation: tdc-cb-rotate-rev 35s linear infinite;
+}
+
+// ─── Header: live dot + queue name ───────────────────────────────────────────
+.tdc--crimson-banner .tdc__header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.35em;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+	background: transparent;
+}
+
+.tdc--crimson-banner .tdc__header::before {
+	content: '';
+	flex-shrink: 0;
+	width: 0.42em;
+	height: 0.42em;
+	border-radius: 50%;
+	background: var(--tdc-cb-live);
+	box-shadow:
+		0 0 0.25em var(--tdc-cb-live),
+		0 0 0.75em var(--tdc-cb-live);
+	animation: tdc-cb-live-pulse 2s ease-in-out infinite;
+}
+
+.tdc--crimson-banner .tdc__queue-name {
+	font-size: 0.82em;
+	font-weight: 800;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: #ffffff;
+	opacity: 1;
+	text-shadow: 0 0 0.35em rgba(255, 255, 255, 0.1);
+}
+
+// ─── Body: token + "CURRENT TOKEN" ───────────────────────────────────────────
+.tdc--crimson-banner .tdc__body {
+	border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tdc--crimson-banner .tdc__subtitle {
+	font-size: 0.42em;
+	font-weight: 500;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.55);
+	margin-bottom: 0.12em;
+}
+
+.tdc--crimson-banner .tdc__token {
+	font-size: 3.8em;
+	font-weight: 800;
+	line-height: 1;
+	color: #ffffff;
+	animation: tdc-cb-token-float 5s ease-in-out infinite;
+}
+
+.tdc--crimson-banner .tdc__body:not(:has(.tdc__subtitle)) .tdc__token::after {
+	content: 'CURRENT TOKEN';
+	display: block;
+	margin-top: 0.22em;
+	font-size: 0.22em;
+	font-weight: 500;
+	letter-spacing: 0.28em;
+	color: rgba(255, 255, 255, 0.7);
+	text-shadow: none;
+	animation: none;
+	transform: none;
+}
+
+// ─── Footer: glass status card ───────────────────────────────────────────────
+.tdc--crimson-banner .tdc__footer {
+	z-index: 2;
+	padding: 0.35em 0.28em;
+}
+
+.tdc--crimson-banner .tdc__status-badge {
+	position: relative;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.22em;
+	width: 88%;
+	max-width: 9em;
+	min-height: 0;
+	padding: 0.55em 0.4em 0.5em;
+	border-radius: 0.65em;
+	background: var(--tdc-badge-bg);
+	border: 1px solid var(--tdc-badge-border);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+	box-shadow: 0 0.35em 1.2em rgba(0, 0, 0, 0.4);
+	overflow: hidden;
+	white-space: normal;
+	text-align: center;
+}
+
+.tdc--crimson-banner .tdc__status-badge::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, var(--tdc-cb-accent), transparent);
+}
+
+.tdc--crimson-banner .tdc__status-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.55em;
+	height: 1.55em;
+	font-size: 0.72em;
+	line-height: 1;
+	border-radius: 50%;
+	background: radial-gradient(
+		circle,
+		rgba(0, 153, 255, #{tdc-zone-a(0.25)}),
+		rgba(0, 153, 255, #{tdc-zone-a(0.05)})
+	);
+	box-shadow: 0 0 0.55em rgba(0, 153, 255, 0.2);
+	margin: 0;
+}
+
+.tdc--crimson-banner .tdc__status-label {
+	font-size: 0.72em;
+	font-weight: 700;
+	line-height: 1.1;
+	letter-spacing: 0.02em;
+	text-transform: capitalize;
+}
+
+.tdc--crimson-banner .tdc__status-badge::after {
+	display: block;
+	margin-top: 0.12em;
+	font-size: 0.28em;
+	font-weight: 500;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.55);
+	line-height: 1.2;
+}
+
+.tdc--crimson-banner.tdc--status-waiting .tdc__status-badge::after,
+.tdc--crimson-banner.tdc--status-registered .tdc__status-badge::after {
+	content: 'NOW SERVING SOON';
+}
+
+.tdc--crimson-banner.tdc--status-serving .tdc__status-badge::after,
+.tdc--crimson-banner.tdc--status-available .tdc__status-badge::after {
+	content: 'NOW SERVING';
+}
+
+.tdc--crimson-banner.tdc--status-completed .tdc__status-badge::after {
+	content: 'SERVICE COMPLETE';
+}
+
+.tdc--crimson-banner.tdc--status-cancelled .tdc__status-badge::after,
+.tdc--crimson-banner.tdc--status-no-show .tdc__status-badge::after {
+	content: 'NOT IN SERVICE';
+}
+
+.tdc--crimson-banner.tdc--status-postponed .tdc__status-badge::after {
+	content: 'POSTPONED';
+}
+
+// ─── Fill layout (zones / live display) ──────────────────────────────────────
+.tdc--fill.tdc--crimson-banner {
+	grid-template-columns: 1.6fr 0.9fr;
+	font-family: 'Inter', system-ui, sans-serif;
+
+	.tdc__header {
+		grid-column: 1 / -1;
+		padding: 0.32em 0.5em;
+	}
+
+	.tdc__body {
+		border-right: 1px solid rgba(255, 255, 255, 0.06);
+	}
+
+	.tdc__token {
+		font-size: 3.35em;
+	}
+}
+
+.tdc--fill.tdc--crimson-banner.tdc--has-history {
+	--tdc-cb-ring-scale: 1.18;
+
+	.tdc__history {
+		border-top-color: rgba(255, 255, 255, 0.08);
+		background: rgba(0, 0, 0, #{tdc-zone-a(0.35)});
+	}
+}
+
+// Showcase card (non-fill picker preview)
+.tdc--crimson-banner:not(.tdc--fill) {
+	min-height: 200px;
+
+	.tdc__body {
+		min-height: 8em;
+	}
+
+	--tdc-cb-ring-scale: 1.2;
+}

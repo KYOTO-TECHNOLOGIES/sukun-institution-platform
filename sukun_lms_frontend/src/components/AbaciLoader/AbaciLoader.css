@@ -1,0 +1,283 @@
+.box {
+  position: fixed;
+  width: 230px;
+  height: 80px;
+  /* border: 1px solid #ac2646; */
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* .column {
+  width: 5%;
+  height: 66%;
+  background: #ac2646;
+  border-radius: 15px;
+} */
+
+.bead-container {
+  width: 60%;
+  height: 66%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.rod {
+  margin-top: 1.5rem;
+  width: 100%;
+  height: 4%;
+  background-color: #808282;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+
+}
+
+.bead {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+ 
+}
+
+/* #rod-one :nth-child(1) {
+  animation: ease-in-out one-one 2s infinite;
+} */
+/* #rod-one :nth-child(2) {
+  animation: ease-in-out one-two 2s infinite;
+}
+#rod-one :nth-child(3) {
+  animation: ease-in-out one-three 2s infinite;
+} */
+
+
+/* second rod */
+#rod-one :nth-child(4) {
+  animation: ease-in-out one-four 2s infinite;
+}
+/* third */
+#rod-two :nth-child(3) {
+  /* animation-delay: 2s; */
+  animation: ease-in-out two-one 2s infinite;
+}
+#rod-two :nth-child(4) {
+  /* animation-delay: 2s; */
+  animation: ease-in-out two-two 2s infinite;
+}
+
+/* #rod-three .bead {
+  animation: ease-in-out three-one 3s infinite;
+} */
+
+
+/* fourth */
+#rod-three :nth-child(2) {
+  /* animation-delay: 3s; */
+  animation: ease-in-out one-one 2s infinite;
+}
+#rod-three :nth-child(3) {
+  /* animation-delay: 3s; */
+  animation: ease-in-out one-two 2s infinite;
+}
+#rod-three :nth-child(4) {
+  /* animation-delay: 3s; */
+  animation: ease-in-out one-three 2s infinite;
+}
+/* fifth */
+#rod-four :nth-child(4) {
+  /* animation-delay: 3s; */
+  animation: ease-in-out one-four 2s infinite;
+}
+@keyframes one-one {
+  0% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(0);
+  }
+  40% {
+    transform: translateX(300%);
+  }
+  70% {
+    transform: translateX(300%);
+  }
+  80% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+@keyframes one-two {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(300%);
+  }
+  80% {
+    transform: translateX(300%);
+  }
+  90% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes one-three {
+  0% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(300%);
+  }
+  90% {
+    transform: translateX(300%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes one-four {
+  0% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(300%);
+  }
+  90% {
+    transform: translateX(300%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes two-one {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(0);
+  }
+  45% {
+    transform: translateX(300%);
+  }
+  55% {
+    transform: translateX(300%);
+  }
+  75% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes two-two {
+  0% {
+    transform: translateX(0);
+  }
+  5% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(300%);
+  }
+  75% {
+    transform: translateX(300%);
+  }
+  95% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+/* 0% {
+  transform: translateX(0);
+}
+10% {
+  transform: translateX(0);
+}
+20% {
+  transform: translateX(300%);
+}
+90% {
+  transform: translateX(300%);
+}
+100% {
+  transform: translateX(0);
+}
+} */
+@keyframes three-one {
+  0% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(0);
+  }
+  40% {
+    transform: translateX(300%);
+  }
+  60% {
+    transform: translateX(300%);
+  }
+  90% {
+    transform: translateX(0);
+  }
+}
+@keyframes three-two {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(0);
+  }
+  45% {
+    transform: translateX(300%);
+  }
+  55% {
+    transform: translateX(300%);
+  }
+  75% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes three-two {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(0);
+  }
+  45% {
+    transform: translateX(300%);
+  }
+  55% {
+    transform: translateX(300%);
+  }
+  75% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}

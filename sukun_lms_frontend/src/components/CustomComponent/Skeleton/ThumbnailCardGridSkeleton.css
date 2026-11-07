@@ -1,0 +1,51 @@
+.thumbnail-card-grid-skeleton {
+	--tcg-tile-width: 175px;
+	--tcg-tile-height: 230px;
+	padding: 0.25rem 0.1rem;
+}
+
+.thumbnail-card-grid-skeleton--flex {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 14px;
+}
+
+.thumbnail-card-grid-skeleton--grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(var(--tcg-tile-width), var(--tcg-tile-width)));
+	gap: 0.9rem;
+	padding: 0.8rem;
+}
+
+.thumbnail-card-grid-skeleton__tile {
+	width: var(--tcg-tile-width);
+	min-height: var(--tcg-tile-height);
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 14px;
+	padding: 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	background: #fff;
+}
+
+.thumbnail-card-grid-skeleton__thumb {
+	flex: 1;
+	min-height: calc(var(--tcg-tile-height) - 52px);
+	border-radius: 10px;
+}
+
+.thumbnail-card-grid-skeleton__line {
+	height: 0.65rem;
+	width: 88%;
+	border-radius: 6px;
+}
+
+.thumbnail-card-grid-skeleton__line--short {
+	width: 55%;
+}
+
+[theme='dark'] .thumbnail-card-grid-skeleton__tile {
+	border-color: rgba(255, 255, 255, 0.08);
+	background: #1e1e2f;
+}

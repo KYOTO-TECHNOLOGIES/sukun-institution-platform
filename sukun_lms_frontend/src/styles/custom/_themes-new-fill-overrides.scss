@@ -1,0 +1,391 @@
+// Themes 6–9 fill layout overrides.
+// MUST load after generic `.tdc--fill` / `.tdc--fill.tdc--has-history` in
+// _token-display-theme.scss — otherwise the shared 58/42 split grid wins.
+
+// ─── Pipboy Terminal ─────────────────────────────────────────────────────────
+// Do not set width/height 100% here — zone overlays already size `.tdc` (see
+// _templates.scss / _screens.scss). Global 100% breaks sidebar preview (260×280).
+.tdc--fill.tdc--pipboy-terminal {
+	min-width: 0;
+	min-height: 0;
+	box-sizing: border-box;
+	padding: clamp(0.35rem, 2.5cqw, 1rem);
+	border-radius: clamp(0.5rem, 2cqw, 1.2rem);
+	// Own grid — do not inherit generic 58/42 split from `.tdc--fill`.
+	grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+	grid-template-rows: auto auto minmax(0, 0.28fr) minmax(0, 1fr) minmax(0, 0.22fr);
+	grid-template-areas:
+		'head  head'
+		'clock clock'
+		'.     .'
+		'body  foot'
+		'.     .';
+
+	.tdc-pipboy-crt-screen {
+		inset: clamp(0.35rem, 2.5cqw, 1rem);
+		border-width: clamp(4px, 0.55cqw, 6px);
+	}
+
+	.tdc-pipboy-screw.tl {
+		top: 8px;
+		left: 8px;
+	}
+
+	.tdc-pipboy-screw.tr {
+		top: 8px;
+		right: 8px;
+	}
+
+	.tdc-pipboy-screw.bl {
+		bottom: 8px;
+		left: 8px;
+	}
+
+	.tdc-pipboy-screw.br {
+		bottom: 8px;
+		right: 8px;
+	}
+
+	.tdc__header,
+	.tdc__body,
+	.tdc__footer,
+	.tdc-pipboy-clock {
+		margin: 0 clamp(0.35rem, 2.5cqw, 0.8rem);
+		min-width: 0;
+	}
+
+	.tdc-pipboy-clock {
+		grid-area: clock;
+		align-self: center;
+		padding: 0.08em 0.4em 0.05em;
+		margin-bottom: 0;
+	}
+
+	.tdc__header {
+		grid-area: head;
+		margin-top: 0.35rem;
+		margin-bottom: 0;
+		padding: 0.2rem 0;
+	}
+
+	.tdc__queue-name {
+		font-size: clamp(0.52em, 3.2cqw, 0.78em);
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.tdc__body {
+		grid-area: body;
+		padding: 0 clamp(0.2em, 1.5cqw, 0.6em);
+		border-right: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		align-self: stretch;
+		overflow: hidden;
+		min-width: 0;
+		min-height: 0;
+		container-type: normal;
+	}
+
+	.tdc__footer {
+		grid-area: foot;
+		margin-bottom: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0 clamp(0.15em, 1.2cqw, 0.28em);
+		align-self: stretch;
+		min-width: 0;
+		overflow: hidden;
+	}
+
+	.tdc__status-badge {
+		max-width: 100%;
+		overflow: hidden;
+	}
+
+	.tdc__status-label {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		max-width: 100%;
+	}
+
+	// FlipTokenDisplay — em chain: root → token → flip-digit; cap by zone width (like Digital Crimson).
+	.tdc__body .tdc__token {
+		width: auto;
+		max-width: 100%;
+		flex: 0 0 auto;
+		flex-shrink: 1;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		line-height: 1;
+		margin: 0;
+		overflow: visible;
+		min-height: 0;
+		min-width: 0;
+		font-size: min(
+			4.5em,
+			calc(88cqw / (var(--tdc-token-chars, 2) * 0.92 + 1.35))
+		);
+		background: transparent;
+		color: var(--bg-dark, #020a02);
+	}
+
+	.flip-token {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.1em;
+		line-height: 0;
+		vertical-align: middle;
+		max-width: 100%;
+	}
+
+	.flip-digit {
+		--flip-h: 1em;
+		width: 0.85em;
+		height: var(--flip-h);
+		max-width: min(0.85em, 40cqw);
+		vertical-align: top;
+		flex-shrink: 1;
+	}
+}
+
+// ─── Velvet Crown ────────────────────────────────────────────────────────────
+// Keep the standard fill grid (token left | status seal right) — flex column hid
+// the footer when the screen-level Active Tokens bar consumes vertical space.
+.tdc--fill.tdc--velvet-crown {
+	display: grid;
+	grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+	grid-template-rows: auto 1fr;
+	grid-template-areas:
+		'head head'
+		'body foot';
+	align-items: stretch;
+	border-radius: inherit;
+	padding: 0.55em;
+	min-height: 0;
+	min-width: 0;
+
+	.tdc-vc-frame {
+		inset: 0.4em;
+	}
+
+	.tdc-vc-ornament {
+		width: 0.9em;
+		height: 0.9em;
+	}
+
+	.tdc__header {
+		grid-area: head;
+		padding: 0.22em 0.5em 0.18em;
+	}
+
+	.tdc__body {
+		grid-area: body;
+		min-height: 0;
+		min-width: 0;
+		border-right: 1px solid rgba(201, 162, 39, 0.22);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 0.2em 0.35em;
+		overflow: hidden;
+	}
+
+	.tdc__footer {
+		grid-area: foot;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.2em 0.35em 0.28em;
+		align-self: stretch;
+		min-width: 0;
+		overflow: visible;
+	}
+
+	.tdc__token {
+		font-size: 3.2em;
+	}
+}
+
+// ─── Sun Bento ───────────────────────────────────────────────────────────────
+.tdc--fill.tdc--sun-bento {
+	// border-radius: clamp(1.4rem, 7.5%, 3.25rem);
+	display: flex;
+	flex-direction: column;
+	grid-template-columns: unset;
+	grid-template-rows: unset;
+	grid-template-areas: unset;
+	min-height: 0;
+	min-width: 0;
+
+	.tdc-sb-layout {
+		flex: 1 1 auto;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.tdc-sb-center {
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+
+	.tdc-sb-token {
+		font-size: 3.35em;
+		line-height: 1;
+	}
+}
+
+// ─── Royal Ticket ────────────────────────────────────────────────────────────
+.tdc--fill.tdc--royal-ticket {
+	display: flex;
+	flex-direction: column;
+	grid-template-columns: unset;
+	grid-template-rows: unset;
+	grid-template-areas: unset;
+	background: var(--rt-bg, rgba(20, 16, 31, #{tdc-zone-a(1)}));
+	min-height: 0;
+	min-width: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	box-sizing: border-box;
+
+	.tdc-rt-wrapper {
+		flex: 1 1 auto;
+		min-height: 0;
+		min-width: 0;
+		width: 100%;
+		padding: clamp(0.18em, 2cqh, 0.35em);
+		align-items: stretch;
+		justify-content: stretch;
+	}
+
+	.tdc-rt-ticket {
+		flex: 1 1 auto;
+		min-height: 0;
+		max-height: 100%;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.tdc-rt-main {
+		flex: 1 1 auto;
+		min-height: 0;
+		min-width: 0;
+		padding: clamp(0.6em, 4cqh, 1.4em) clamp(0.7em, 3.5cqw, 1.5em)
+			clamp(0.75em, 5cqh, 1.6em);
+		display: flex;
+		flex-direction: column;
+	}
+
+	.tdc-rt-content {
+		flex: 1 1 auto;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+
+	.tdc-rt-header {
+		flex-shrink: 0;
+		margin-bottom: clamp(0.3em, 3cqh, 1.2em);
+		gap: clamp(0.25em, 2cqw, 0.5em);
+		align-items: center;
+	}
+
+	.tdc-rt-logo {
+		font-size: clamp(0.5em, 2.8cqw, 0.72em);
+		min-width: 0;
+		flex: 1 1 auto;
+	}
+
+	.tdc-rt-type {
+		font-size: clamp(0.36em, 2.2cqw, 0.48em);
+		padding: clamp(0.2em, 1.8cqh, 0.35em) clamp(0.4em, 2.5cqw, 0.7em);
+		letter-spacing: clamp(0.06em, 1.2cqw, 0.16em);
+		max-width: 44%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.tdc-rt-title {
+		font-size: clamp(1.05em, 26cqh, 2.2em);
+		flex-shrink: 1;
+		min-height: 0;
+		overflow: hidden;
+		line-height: 1;
+	}
+
+	.tdc-rt-subtitle {
+		font-size: clamp(0.44em, 2.4cqh, 0.58em);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.tdc-rt-stub {
+		flex: 0 0 auto;
+		padding: clamp(0.5em, 3.5cqh, 1.35em) clamp(0.6em, 3cqw, 1.5em);
+		gap: clamp(0.3em, 2.5cqw, 0.75em);
+	}
+
+	.tdc-rt-barcode {
+		max-width: clamp(4.5em, 42cqw, 9em);
+		height: clamp(1.1em, 8cqh, 2.2em);
+	}
+
+	.tdc-rt-admit-num {
+		font-size: clamp(0.95em, 14cqh, 2em);
+	}
+}
+
+@container (max-height: 260px) {
+	.tdc--fill.tdc--royal-ticket {
+		.tdc-rt-perforation {
+			display: none;
+		}
+
+		.tdc-rt-stub {
+			padding-top: clamp(0.35em, 2.5cqh, 0.65em);
+			padding-bottom: clamp(0.35em, 2.5cqh, 0.65em);
+		}
+	}
+}
+
+@container (max-width: 340px) {
+	.tdc--fill.tdc--royal-ticket {
+		.tdc-rt-type {
+			max-width: 38%;
+		}
+
+		.tdc-rt-barcode-id {
+			font-size: 0.38em;
+		}
+	}
+}
+
+// Themes 6–9 use a screen-level Active Tokens bar — never the in-zone history row.
+.tdc--fill.tdc--pipboy-terminal,
+.tdc--fill.tdc--velvet-crown,
+.tdc--fill.tdc--sun-bento,
+.tdc--fill.tdc--royal-ticket {
+	&.tdc--has-history {
+		grid-template-rows: unset;
+		grid-template-areas: unset;
+
+		.tdc__history {
+			display: none !important;
+		}
+	}
+}

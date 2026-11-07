@@ -1,0 +1,1527 @@
+// ─── Token Display Card ───────────────────────────────────────────────────────
+// Standalone queue/token display widget used on screens, zone layouts, and
+// previews. Multiple built-in themes; custom background via inline styles.
+//
+// BEM root: .tdc
+
+@import 'tdc-border-energy';
+@import 'tdc-zone-bg-opacity';
+
+// ─── CSS custom properties (defaults — digital-crimson) ──────────────────────
+
+.tdc {
+	--tdc-bg: linear-gradient(145deg, #6d0b0b 0%, #3a0404 55%, #180000 100%);
+	--tdc-glow-color: rgba(220, 30, 30, 0.20);
+	--tdc-text: rgba(255, 255, 255, 0.96);
+	--tdc-text-sub: rgba(255, 190, 180, 0.82);
+	--tdc-text-label: rgba(255, 140, 130, 0.65);
+	--tdc-token-color: #fff5d0;
+	--tdc-token-shadow: 0 4px 36px rgba(255, 100, 50, 0.45);
+	--tdc-border: rgba(220, 30, 30, 0.35);
+	--tdc-badge-bg: rgba(0, 0, 0, #{tdc-zone-a(0.45)});
+	--tdc-badge-text: rgba(255, 255, 255, 0.95);
+	--tdc-badge-border: rgba(220, 30, 30, 0.50);
+}
+
+// ─── Digital Crimson animations ──────────────────────────────────────────────
+
+// Flash-line: background overlay sweep (behind content via ::before + z-index).
+@keyframes tdc-flashline {
+	0% {
+		transform: translateX(-135%);
+		opacity: 0.35;
+	}
+	12% {
+		opacity: 0.85;
+	}
+	88% {
+		opacity: 0.85;
+	}
+	100% {
+		transform: translateX(135%);
+		opacity: 0.35;
+	}
+}
+
+// Heading slide: queue-name text bounces left ↔ right inside the header.
+// alternate direction: left→right on odd iterations, right→left on even.
+@keyframes tdc-heading-slide {
+	0%   { transform: translateX(-18%); }
+	100% { transform: translateX(18%);  }
+}
+
+// Token glow-pulse: scale + float + warm glow intensifies — like an ember breathing.
+@keyframes tdc-token-glow {
+	0%, 100% {
+		transform: scale(1) translateY(0);
+		text-shadow:
+			0 2px 12px rgba(255, 120, 60, 0.35),
+			0 0 0px rgba(255, 240, 200, 0);
+	}
+	50% {
+		transform: scale(1.04) translateY(-2%);
+		text-shadow:
+			0 4px 22px rgba(255, 170, 80, 0.95),
+			0 0 14px rgba(255, 225, 160, 0.60),
+			0 0 6px  rgba(255, 255, 230, 0.75);
+	}
+}
+
+// ─── Theme 1 · Digital Crimson ────────────────────────────────────────────────
+// Dark Crimson (#3A0000) base with red metallic glow
+// DISTINCTIVE LAYOUT (fill mode): CSS Grid — full-width header row (queue name),
+//   then two columns: LEFT = serving-point name + token | RIGHT = status badge
+// Signature animation: diagonal scan-line sweeping across the zone
+
+.tdc--digital-crimson {
+	--tdc-bg: linear-gradient(145deg, #6d0b0b 0%, #3a0404 55%, #180000 100%);
+	--tdc-glow-color: rgba(220, 30, 30, 0.20);
+	--tdc-text: rgba(255, 255, 255, 0.96);
+	--tdc-text-sub: rgba(255, 190, 180, 0.82);
+	--tdc-text-label: rgba(255, 140, 130, 0.65);
+	--tdc-token-color: #fff5d0;
+	--tdc-token-shadow: 0 4px 36px rgba(255, 100, 50, 0.45);
+	--tdc-border: rgba(220, 30, 30, 0.35);
+	--tdc-badge-bg: rgba(0, 0, 0, #{tdc-zone-a(0.45)});
+	--tdc-badge-text: rgba(255, 255, 255, 0.95);
+	--tdc-badge-border: rgba(220, 30, 30, 0.50);
+
+	box-shadow:
+		0 8px 32px rgba(0, 0, 0, 0.55),
+		0 2px 8px rgba(100, 0, 0, 0.30),
+		inset 0 1px 0 rgba(255, 100, 100, 0.08);
+
+	isolation: isolate;
+
+	// ::before paints before children — reliable background overlay on template + live.
+	&::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		pointer-events: none;
+		border-radius: inherit;
+		background: linear-gradient(
+			105deg,
+			transparent 43%,
+			rgba(255, 200, 180, 0.05) 46.5%,
+			rgba(255, 230, 210, 0.14) 48.8%,
+			rgba(255, 255, 255, 0.42) 49.75%,
+			rgba(255, 255, 255, 0.42) 50.25%,
+			rgba(255, 230, 210, 0.14) 51.2%,
+			rgba(255, 200, 180, 0.05) 53.5%,
+			transparent 57%
+		);
+		animation: tdc-flashline 6.5s ease-in-out infinite alternate;
+		will-change: transform, opacity;
+	}
+
+	.tdc__glow {
+		z-index: 0;
+	}
+
+	@include tdc-outer-border-energy(
+		rgba(255, 120, 80, 0.55),
+		rgba(220, 30, 30, 0.06),
+		rgba(255, 200, 160, 0.35)
+	);
+
+	&::after {
+		z-index: 2;
+	}
+
+	.tdc__header,
+	.tdc__body,
+	.tdc__footer,
+	.tdc__history {
+		position: relative;
+		z-index: 4;
+	}
+}
+
+.tdc--digital-crimson .tdc-be-header-beam {
+	background: rgba(220, 30, 30, 0.15);
+
+	&::after {
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(255, 100, 60, 0.4) 35%,
+			rgba(255, 180, 120, 0.9) 50%,
+			rgba(255, 100, 60, 0.4) 65%,
+			transparent 100%
+		);
+	}
+}
+
+.tdc--digital-crimson .tdc-dc-history-beam {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	overflow: hidden;
+	pointer-events: none;
+	z-index: 2;
+	background: rgba(220, 30, 30, 0.15);
+
+	&::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 22%;
+		height: 100%;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(255, 100, 60, 0.4) 35%,
+			rgba(255, 180, 120, 0.9) 50%,
+			rgba(255, 100, 60, 0.4) 65%,
+			transparent 100%
+		);
+		animation: tdc-be-header-flow 10s linear infinite;
+	}
+}
+
+.tdc--digital-crimson .tdc__history-card {
+	@include tdc-history-card-border-energy(
+		rgba(255, 140, 90, 0.55),
+		rgba(220, 30, 30, 0.1),
+		rgba(24, 0, 0, 0.9)
+	);
+}
+
+// Status panel — static crimson border + flowing line energy (matches card / header beams).
+.tdc--digital-crimson .tdc__status-badge {
+	position: relative;
+	overflow: hidden;
+
+	@include tdc-outer-border-energy(
+		rgba(255, 120, 80, 0.55),
+		rgba(220, 30, 30, 0.06),
+		rgba(255, 200, 160, 0.35)
+	);
+}
+
+.tdc--digital-crimson .tdc__status-icon,
+.tdc--digital-crimson .tdc__status-label {
+	position: relative;
+	z-index: 2;
+}
+
+// ─── Theme 2 · Onyx Gold ─────────────────────────────────────────────────────
+// Pitch Black (#000000) background · Liquid Gold (#D4AF37) accents
+// Gold top decorative rule + gold token — luxury, premium
+// Column split: dedicated separator (same pattern as Regal Court imperial-court)
+
+@keyframes tdc-og-divider-trace {
+	0% {
+		top: 0;
+		opacity: 0.35;
+	}
+	50% {
+		opacity: 0.9;
+	}
+	100% {
+		top: calc(100% - 22%);
+		opacity: 0.35;
+	}
+}
+
+.tdc--onyx-gold {
+	--tdc-col-separator-pos: 58%;
+	--tdc-bg: #000000;
+	--tdc-glow-color: rgba(212, 175, 55, 0.18);
+	--tdc-text: rgba(255, 255, 255, 0.95);
+	--tdc-text-sub: rgba(212, 175, 55, 0.80);
+	--tdc-text-label: rgba(212, 175, 55, 0.60);
+	--tdc-token-color: #d4af37;
+	--tdc-token-shadow: 0 4px 40px rgba(212, 175, 55, 0.55), 0 0 80px rgba(212, 175, 55, 0.15);
+	--tdc-border: rgba(212, 175, 55, 0.28);
+	--tdc-badge-bg: rgba(212, 175, 55, #{tdc-zone-a(0.10)});
+	--tdc-badge-text: #d4af37;
+	--tdc-badge-border: rgba(212, 175, 55, 0.42);
+
+	box-shadow:
+		0 8px 36px rgba(0, 0, 0, 0.70),
+		0 2px 8px rgba(0, 0, 0, 0.40),
+		inset 0 1px 0 rgba(255, 255, 255, 0.04),
+		inset 0 -1px 0 rgba(212, 175, 55, 0.2);
+	overflow: hidden;
+	isolation: isolate;
+
+	@include tdc-outer-border-energy(
+		rgba(240, 204, 90, 0.55),
+		rgba(212, 175, 55, 0.08)
+	);
+
+	.tdc__header,
+	.tdc__body,
+	.tdc__footer,
+	.tdc__history {
+		position: relative;
+		z-index: 4;
+	}
+
+	.tdc__header {
+		overflow: hidden;
+
+		&::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 12%;
+			right: 12%;
+			height: 2px;
+			background: linear-gradient(
+				90deg,
+				transparent 0%,
+				#d4af37 40%,
+				#f0cc5a 60%,
+				#d4af37 80%,
+				transparent 100%
+			);
+			z-index: 3;
+			pointer-events: none;
+		}
+	}
+}
+
+.tdc--onyx-gold .tdc-be-header-beam {
+	background: rgba(212, 175, 55, 0.12);
+
+	&::after {
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(212, 175, 55, 0.35) 35%,
+			rgba(240, 204, 90, 0.95) 50%,
+			rgba(212, 175, 55, 0.35) 65%,
+			transparent 100%
+		);
+	}
+}
+
+.tdc--onyx-gold .tdc-col-separators {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	pointer-events: none;
+}
+
+.tdc--onyx-gold .tdc-col-separator {
+	position: absolute;
+	top: 12%;
+	bottom: 12%;
+	left: var(--tdc-col-separator-pos);
+	width: 2px;
+	transform: translateX(-50%);
+	overflow: hidden;
+	background: linear-gradient(
+		180deg,
+		transparent 0%,
+		rgba(212, 175, 55, 0.35) 8%,
+		rgba(240, 204, 90, 0.6) 50%,
+		rgba(212, 175, 55, 0.35) 92%,
+		transparent 100%
+	);
+	box-shadow: 0 0 6px rgba(212, 175, 55, 0.12);
+
+	> span {
+		position: absolute;
+		left: 50%;
+		width: 4px;
+		height: 22%;
+		transform: translateX(-50%);
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			rgba(240, 204, 90, 0.85) 45%,
+			rgba(212, 175, 55, 0.75) 55%,
+			transparent 100%
+		);
+		filter: blur(0.5px);
+		box-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+		animation: tdc-og-divider-trace 10s ease-in-out infinite alternate;
+	}
+}
+
+.tdc--onyx-gold .tdc-og-history-beam {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	overflow: hidden;
+	pointer-events: none;
+	z-index: 2;
+	background: rgba(212, 175, 55, 0.12);
+
+	&::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 22%;
+		height: 100%;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(212, 175, 55, 0.35) 35%,
+			rgba(240, 204, 90, 0.95) 50%,
+			rgba(212, 175, 55, 0.35) 65%,
+			transparent 100%
+		);
+		animation: tdc-be-header-flow 10s linear infinite;
+	}
+}
+
+.tdc--onyx-gold .tdc__history-card {
+	@include tdc-history-card-border-energy(
+		rgba(240, 204, 90, 0.55),
+		rgba(212, 175, 55, 0.12),
+		rgba(0, 0, 0, 0.92)
+	);
+}
+
+// Status panel — static gold border + flowing line energy (matches card / header beams).
+.tdc--onyx-gold .tdc__status-badge {
+	position: relative;
+	overflow: hidden;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.2em;
+	border: 1px solid rgba(212, 175, 55, 0.38);
+	border-radius: 10px;
+	background: rgba(12, 10, 0, #{tdc-zone-a(0.62)});
+	color: rgba(240, 204, 90, 0.95);
+	font-size: 0.54em;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	padding: 0.42em 0.38em;
+	box-sizing: border-box;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+	white-space: normal;
+	text-align: center;
+
+	@include tdc-outer-border-energy(
+		rgba(240, 204, 90, 0.55),
+		rgba(212, 175, 55, 0.08)
+	);
+}
+
+.tdc--onyx-gold .tdc__status-icon,
+.tdc--onyx-gold .tdc__status-label {
+	position: relative;
+	z-index: 2;
+}
+
+.tdc--onyx-gold .tdc__status-icon {
+	opacity: 0.88;
+}
+
+// Keep gold border flow — status tint modifiers stay subtle on this theme.
+.tdc--onyx-gold .tdc__status-badge--serving,
+.tdc--onyx-gold .tdc__status-badge--completed,
+.tdc--onyx-gold .tdc__status-badge--cancelled,
+.tdc--onyx-gold .tdc__status-badge--no-show,
+.tdc--onyx-gold .tdc__status-badge--postponed,
+.tdc--onyx-gold .tdc__status-badge--waiting {
+	border-color: rgba(212, 175, 55, 0.38);
+	background: rgba(12, 10, 0, #{tdc-zone-a(0.62)});
+	color: rgba(240, 204, 90, 0.95);
+}
+
+
+// ─── Theme 3 · Modern Queue Board (slug: crimson-banner) ─────────────────────
+@import 'modern-queue-board';
+
+// ─── Theme 4 · Regal Court (slug: imperial-court) ────────────────────────────
+@import 'imperial-court';
+
+// ─── Theme 5 · Glass Panel (slug: arctic-white) ───────────────────────────────
+@import 'arctic-glass';
+
+// ─── Theme 6 · Pipboy Terminal (slug: pipboy-terminal) ──────────────────────
+@import 'pipboy-terminal';
+
+// ─── Theme 7 · Velvet Crown (slug: velvet-crown) ───────────────────────────
+@import 'velvet-crown';
+
+@import 'sun-bento';
+
+@import 'royal-ticket';
+
+// Fill-only zone (no named theme) — background from inline style
+.tdc--fill-mode {
+	--tdc-bg: transparent;
+	--tdc-glow-color: rgba(255, 255, 255, 0.08);
+	background: var(--tdc-bg);
+}
+
+// Text colour override for custom backgrounds
+.tdc--text-light {
+	--tdc-text: rgba(255, 255, 255, 0.95);
+	--tdc-text-sub: rgba(220, 225, 235, 0.72);
+	--tdc-text-label: rgba(190, 200, 220, 0.60);
+	--tdc-token-color: #ffffff;
+	--tdc-token-shadow: 0 4px 24px rgba(255, 255, 255, 0.2);
+	--tdc-border: rgba(255, 255, 255, 0.15);
+	--tdc-badge-bg: rgba(0, 0, 0, #{tdc-zone-a(0.50)});
+	--tdc-badge-text: rgba(255, 255, 255, 0.95);
+	--tdc-badge-border: rgba(255, 255, 255, 0.25);
+}
+
+.tdc--text-dark {
+	--tdc-text: rgba(15, 25, 40, 0.95);
+	--tdc-text-sub: rgba(30, 45, 65, 0.75);
+	--tdc-text-label: rgba(40, 60, 90, 0.58);
+	--tdc-token-color: #0f1928;
+	--tdc-token-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+	--tdc-border: rgba(0, 0, 0, 0.12);
+	--tdc-badge-bg: rgba(0, 0, 0, #{tdc-zone-a(0.12)});
+	--tdc-badge-text: rgba(15, 25, 45, 0.92);
+	--tdc-badge-border: rgba(0, 0, 0, 0.18);
+}
+
+// ─── Base card layout ─────────────────────────────────────────────────────────
+
+.tdc {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 260px;
+	height: 280px;
+	min-width: 160px;
+	min-height: 180px;
+	border-radius: 18px;
+	overflow: hidden;
+	background: var(--tdc-bg);
+	border: 1px solid var(--tdc-border);
+	box-shadow:
+		0 8px 32px rgba(0, 0, 0, 0.45),
+		0 2px 8px rgba(0, 0, 0, 0.25),
+		inset 0 1px 0 rgba(255, 255, 255, 0.06);
+	user-select: none;
+
+	// Full-container mode (template zones + live screen overlays only)
+	&.tdc--fill {
+		width: 100%;
+		height: 100%;
+		min-width: 0;
+		min-height: 0;
+		border-radius: inherit;
+		box-sizing: border-box;
+	}
+}
+
+// ─── Radial glow overlay ──────────────────────────────────────────────────────
+
+.tdc__glow {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: radial-gradient(
+		ellipse 70% 55% at 50% -5%,
+		var(--tdc-glow-color, transparent) 0%,
+		transparent 70%
+	);
+	pointer-events: none;
+	z-index: 0;
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────────
+
+.tdc__header {
+	position: relative;
+	z-index: 1;
+	padding: 0.85em 1em 0;
+	text-align: center;
+	flex-shrink: 0;
+}
+
+.tdc__queue-name {
+	display: inline-block;
+	font-size: 0.78em;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--tdc-text);
+	opacity: 0.82;
+	line-height: 1.2;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+
+	&.tdc__queue-name--empty {
+		height: 1em;
+	}
+}
+
+// ─── Body ─────────────────────────────────────────────────────────────────────
+
+.tdc__body {
+	position: relative;
+	z-index: 1;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 0.5em 1em;
+	text-align: center;
+	gap: 0.15em;
+}
+
+.tdc__subtitle {
+	font-size: 0.72em;
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	color: var(--tdc-text-sub);
+	line-height: 1.3;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	margin-bottom: 0.2em;
+}
+
+.tdc__token {
+	font-size: 3.6em;
+	font-weight: 800;
+	line-height: 1;
+	letter-spacing: -0.02em;
+	color: var(--tdc-token-color);
+	text-shadow: var(--tdc-token-shadow);
+	margin: 0.08em 0;
+	// Clamp so it doesn't overflow small containers
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: clip;
+	white-space: nowrap;
+}
+
+// Zone fill mode: CSS grid — header full width | token left | status right.
+// Root font-size from ResizeObserver (computeFillZoneSplitBaseFontSize).
+.tdc--fill {
+	container-type: size;
+	display: grid;
+	grid-template-columns: 58% 42%;
+	grid-template-rows: auto 1fr;
+	grid-template-areas:
+		'head  head'
+		'body  foot';
+	align-items: stretch;
+	min-height: 0;
+	min-width: 0;
+
+	.tdc__header {
+		grid-area: head;
+		position: relative;
+		z-index: 3;
+		padding: 0.28em 0.75em 0.22em;
+		flex-shrink: 0;
+		background: rgba(0, 0, 0, #{tdc-zone-a(0.22)});
+		border-bottom: 1px solid var(--tdc-border);
+		overflow: hidden;
+		min-width: 0;
+	}
+
+	.tdc__queue-name {
+		font-size: 0.76em;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		opacity: 0.95;
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		display: block;
+	}
+
+	.tdc__queue-name--empty {
+		display: none;
+	}
+
+	.tdc__body {
+		grid-area: body;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 0.28em 0.35em;
+		gap: 0.08em;
+		min-height: 0;
+		min-width: 0;
+	}
+
+	// Themes 1–5 split grid body — Pipboy uses its own grid (see _themes-new-fill-overrides.scss).
+	&:not(.tdc--pipboy-terminal) .tdc__body {
+		overflow: hidden;
+		border-right: 1px solid var(--tdc-border);
+		container-type: size;
+	}
+
+	.tdc__subtitle {
+		font-size: 0.58em;
+		flex-shrink: 0;
+		letter-spacing: 0.07em;
+		text-transform: uppercase;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 100%;
+		margin-bottom: 0.06em;
+	}
+
+	.tdc__token {
+		flex-shrink: 1;
+		min-height: 0;
+		max-width: 100%;
+		text-align: center;
+	}
+
+	// Plain numeral themes only — Pipboy uses FlipTokenDisplay (flip-digit panels).
+	&:not(.tdc--pipboy-terminal) .tdc__token {
+		font-size: 3.35em;
+		width: 100%;
+		line-height: 0.94;
+		overflow: hidden;
+		text-overflow: clip;
+	}
+
+	.tdc__footer {
+		grid-area: foot;
+		position: relative;
+		z-index: 3;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 0.2em 0.22em;
+		min-width: 0;
+		min-height: 0;
+		overflow: visible;
+		container-type: size;
+		container-name: tdc-foot;
+	}
+
+	.tdc__status-badge {
+		flex-direction: column;
+		gap: min(0.22em, 6cqh);
+		padding: min(0.38em, 8cqh) min(0.36em, 3cqw);
+		border-radius: 10px;
+		max-width: 100%;
+		width: 100%;
+		max-height: 94%;
+		box-sizing: border-box;
+		text-align: center;
+		white-space: normal;
+		font-size: min(0.66em, 24cqh);
+		overflow: visible;
+		justify-content: center;
+	}
+
+	.tdc__status-icon {
+		font-size: min(1.35em, 34cqh);
+		display: block;
+		text-align: center;
+		line-height: 1;
+		flex-shrink: 0;
+	}
+
+	.tdc__status-label {
+		font-size: min(0.86em, 20cqh);
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		display: block;
+		text-align: center;
+		line-height: 1.15;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		max-width: 100%;
+		flex-shrink: 1;
+		min-width: 0;
+	}
+}
+
+// When the footer column is short, lay out icon + label in one row.
+@container tdc-foot (max-height: 88px) {
+	.tdc__status-badge {
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: center;
+		justify-content: center;
+		gap: 0.2em;
+		padding: 0.2em 0.32em;
+		font-size: min(0.58em, 26cqh);
+	}
+
+	.tdc__status-icon {
+		font-size: min(1.1em, 32cqh);
+	}
+
+	.tdc__status-label {
+		font-size: min(0.82em, 22cqh);
+	}
+}
+
+// ─── Per-theme typography overrides ──────────────────────────────────────────
+// Placed AFTER .tdc--fill so two-class selectors (.tdc--fill.tdc--[theme])
+// override the generic fill defaults — no !important needed.
+
+// ── Digital Crimson ── Queue name bold + full-width; token warm cream ──────────
+.tdc--digital-crimson {
+	// Header clips the sliding queue name at both edges
+	.tdc__header {
+		overflow: hidden;
+	}
+
+	.tdc__queue-name {
+		font-size: 0.82em;
+		font-weight: 800;
+		letter-spacing: 0.14em;
+		color: #ffffff;
+		opacity: 1;
+		text-transform: uppercase;
+		text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+		// Slide left→right, bounce, repeat (ease-in-out = natural deceleration at ends)
+		animation: tdc-heading-slide 4s ease-in-out infinite alternate;
+		display: inline-block; // transform requires block/inline-block
+	}
+	.tdc__subtitle {
+		font-size: 0.64em;
+		color: rgba(255, 190, 170, 0.80);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+	.tdc__token {
+		font-size: 3.8em;
+		color: #fff5d0;
+		letter-spacing: -0.01em;
+		// Breathing ember glow — scale, float and glow pulse simultaneously
+		animation: tdc-token-glow 3.8s ease-in-out infinite;
+		transform-origin: center center;
+		display: inline-block; // transform requires block/inline-block
+	}
+	.tdc__status-badge {
+		background: rgba(0, 0, 0, #{tdc-zone-a(0.35)});
+		border-color: rgba(220, 30, 30, 0.40);
+		color: rgba(255, 220, 200, 0.95);
+		font-weight: 700;
+	}
+}
+
+// ── Digital Crimson fill — theme accents on shared split grid ─────────────────
+.tdc--fill.tdc--digital-crimson {
+	.tdc__header {
+		background: rgba(0, 0, 0, #{tdc-zone-a(0.28)});
+		border-bottom-color: rgba(220, 40, 40, 0.30);
+	}
+
+	.tdc__queue-name {
+		font-size: 0.80em;
+		font-weight: 800;
+		letter-spacing: 0.13em;
+		color: #ffffff;
+		text-shadow: 0 1px 4px rgba(0, 0, 0, 0.40);
+	}
+
+	.tdc__body {
+		border-right-color: rgba(220, 30, 30, 0.18);
+	}
+
+	.tdc__subtitle {
+		font-size: 0.60em;
+		color: rgba(255, 190, 170, 0.78);
+	}
+
+	.tdc__token {
+		font-size: 3.35em;
+		color: #fff5d0;
+	}
+
+	.tdc__status-badge {
+		background: rgba(0, 0, 0, #{tdc-zone-a(0.38)});
+		border-color: rgba(220, 30, 30, 0.40);
+		overflow: visible;
+	}
+
+	.tdc__status-label {
+		color: rgba(255, 220, 200, 0.95);
+	}
+}
+
+.tdc--fill.tdc--digital-crimson.tdc--has-history {
+	.tdc__history {
+		border-top-color: var(--tdc-border);
+	}
+}
+
+// ── Onyx Gold ── Ultra-minimal: tiny gold queue label, token dominates ─────────
+.tdc--onyx-gold {
+	// Queue name: whisper-small, gold, low opacity — token is the hero
+	.tdc__queue-name {
+		font-size: 0.50em;
+		font-weight: 500;
+		letter-spacing: 0.24em;
+		color: rgba(212, 175, 55, 0.55);
+		opacity: 1;
+		text-transform: uppercase;
+	}
+	.tdc__subtitle {
+		font-size: 0.62em;
+		color: rgba(212, 175, 55, 0.42);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+	// Token: massively dominant
+	.tdc__token {
+		font-size: 4.4em;
+		letter-spacing: -0.02em;
+		line-height: 0.92;
+	}
+}
+
+.tdc--fill.tdc--onyx-gold {
+	--tdc-col-separator-pos: 58%;
+
+	// Extra-tiny queue name — token is the ONLY visual hero
+	.tdc__queue-name { font-size: 0.58em; letter-spacing: 0.22em; }
+
+	// Static gold separator replaces generic column border.
+	.tdc__body {
+		border-right: none;
+	}
+
+	.tdc__status-badge {
+		overflow: visible;
+		width: 88%;
+		max-width: 8.5em;
+		font-size: min(0.66em, 24cqh);
+		padding: min(0.45em, 8cqh) min(0.4em, 3cqw);
+	}
+}
+
+// Vertical separator clipped above active-tokens band — no overlap with top border.
+.tdc--fill.tdc--onyx-gold.tdc--has-history {
+	.tdc-col-separators {
+		clip-path: inset(0 0 calc(var(--tdc-history-row-max) + 2px) 0);
+	}
+
+	.tdc-col-separator {
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			rgba(212, 175, 55, 0.35) 8%,
+			rgba(240, 204, 90, 0.6) 50%,
+			rgba(212, 175, 55, 0.35) 72%,
+			transparent 82%
+		);
+	}
+
+	.tdc__history {
+		border-top-color: var(--tdc-border);
+		background: rgba(0, 0, 0, #{tdc-zone-a(0.35)});
+	}
+}
+
+// Regal Court — one divider only (backdrop); suppress generic fill column border
+.tdc--fill.tdc--imperial-court .tdc__body {
+	border-right: none;
+}
+
+// ── Glass Panel (arctic-white) — see _arctic-glass.scss ───────────────────────
+
+// ─── Active tokens strip ─────────────────────────────────────────────────────
+// Shown at the bottom of fill-mode zones when recentTokens are supplied.
+// ALL colours come from the active theme's CSS variables so it matches
+// every theme automatically (digital-crimson, onyx-gold, …).
+
+@keyframes tdc-history-marquee {
+	0%   { transform: translateX(0); }
+	100% { transform: translateX(-50%); }
+}
+
+// Hidden everywhere by default; the fill + has-history combo enables it.
+.tdc__history {
+	display: none;
+}
+
+// ── Layout: third grid row for other active tokens ────────────────────────────
+.tdc--fill.tdc--has-history {
+	--tdc-history-row-max: 26%;
+
+	grid-template-rows: auto 1fr minmax(clamp(1.85em, 17%, 24%), 26%);
+	grid-template-areas:
+		'head head'
+		'body foot'
+		'hist hist';
+
+	.tdc__history {
+		grid-area: hist;
+		display: flex;
+		align-items: stretch;
+		position: relative;
+		height: auto;
+		min-height: 0;
+		z-index: 4;
+		overflow: hidden;
+		border-top: 1px solid var(--tdc-border);
+		background: rgba(0, 0, 0, calc(0.28 * var(--tdc-zone-bg-opacity, 1)));
+		pointer-events: none;
+	}
+
+	.tdc__footer {
+		grid-area: foot;
+		position: relative;
+		bottom: unset;
+		left: unset;
+		right: unset;
+	}
+
+	.tdc__body {
+		padding-bottom: 0.28em;
+	}
+}
+
+// ── Label column ─────────────────────────────────────────────────────────────
+.tdc__history-label {
+	flex: 0 0 clamp(1.65em, 11cqw, 2.35em);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 0.12em 0.32em;
+	gap: 0.15em;
+	min-width: 0;
+	border-right: 1px solid var(--tdc-border);
+	background: rgba(0, 0, 0, calc(0.15 * var(--tdc-zone-bg-opacity, 1)));
+}
+
+.tdc__history-label-text {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.45em;
+	font-size: clamp(0.26em, 3.2cqh, 0.4em);
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--tdc-text-label);
+	writing-mode: vertical-rl;
+	text-orientation: mixed;
+	transform: rotate(180deg);
+	max-height: 100%;
+	overflow: hidden;
+}
+
+.tdc__history-label-word {
+	display: block;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+@container (max-height: 160px) {
+	.tdc--fill.tdc--has-history {
+		--tdc-history-row-max: 24%;
+
+		grid-template-rows: auto 1fr minmax(clamp(1.65em, 16%, 22%), 24%);
+	}
+
+	.tdc__history-label {
+		flex: 0 0 clamp(1.45em, 10cqw, 2em);
+		padding: 0.08em 0.22em;
+	}
+
+	.tdc__history-label-text {
+		gap: 0.3em;
+		font-size: clamp(0.22em, 2.8cqh, 0.34em);
+		letter-spacing: 0.07em;
+	}
+}
+
+.tdc__history-label-divider {
+	display: block;
+	flex: 1;
+	width: 1px;
+	background: linear-gradient(to bottom, transparent, var(--tdc-border), transparent);
+}
+
+// ── Scrolling track ───────────────────────────────────────────────────────────
+.tdc__history-track {
+	flex: 1;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	min-width: 0;
+}
+
+.tdc__history-scroll {
+	display: flex;
+	align-items: center;
+	gap: 0.35em;
+	padding: 0 0.4em;
+	// Duration proportional to token count; each card gets ~2.8 s of screen time.
+	animation: tdc-history-marquee calc(var(--tdc-history-count, 4) * 2.8s) linear infinite;
+	will-change: transform;
+}
+
+// Fewer than ACTIVE_TOKENS_MARQUEE_MIN_COUNT: no duplicate list, no scroll — align start.
+.tdc--history-static .tdc__history-track,
+.tdc__history--static .tdc__history-track {
+	justify-content: flex-start;
+}
+
+.tdc--history-static .tdc__history-scroll,
+.tdc__history--static .tdc__history-scroll {
+	animation: none;
+	transform: none;
+	will-change: auto;
+	justify-content: flex-start;
+	width: max-content;
+	max-width: 100%;
+}
+
+// ── Mini token card ───────────────────────────────────────────────────────────
+.tdc__history-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.04em;
+	padding: 0.12em 0.42em 0.14em;
+	border: 1px solid var(--tdc-border);
+	border-radius: 0.5em;
+	background: rgba(0, 0, 0, calc(0.2 * var(--tdc-zone-bg-opacity, 1)));
+	flex-shrink: 0;
+	min-width: 2.6em;
+}
+
+.tdc__history-token {
+	font-size: 0.62em;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	color: var(--tdc-text);
+	line-height: 1;
+}
+
+.tdc__history-counter-label {
+	font-size: 0.32em;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--tdc-text-label);
+	line-height: 1;
+}
+
+.tdc__history-counter-num {
+	font-size: 0.5em;
+	font-weight: 700;
+	color: var(--tdc-token-color);
+	line-height: 1;
+}
+
+@container (max-height: 160px) {
+	.tdc__history-card {
+		padding: 0.1em 0.34em 0.12em;
+		min-width: 2.35em;
+	}
+
+	.tdc__history-token {
+		font-size: 0.56em;
+	}
+
+	.tdc__history-counter-label {
+		font-size: 0.28em;
+	}
+
+	.tdc__history-counter-num {
+		font-size: 0.44em;
+	}
+}
+
+.tdc__history-time {
+	font-size: 0.33em;
+	color: var(--tdc-text-sub);
+	letter-spacing: 0.04em;
+	opacity: 0.72;
+}
+
+// ─── Footer ───────────────────────────────────────────────────────────────────
+
+.tdc__footer {
+	position: relative;
+	z-index: 1;
+	padding: 0 1em 0.9em;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+// ─── Status badge ─────────────────────────────────────────────────────────────
+
+.tdc__status-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35em;
+	padding: 0.28em 0.75em;
+	border-radius: 9999px;
+	background: var(--tdc-badge-bg);
+	border: 1px solid var(--tdc-badge-border);
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	font-size: 0.66em;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	color: var(--tdc-badge-text);
+	white-space: nowrap;
+	// line-height > 1 so descenders (g, j, y, p, q) are never clipped
+	line-height: 1.25;
+}
+
+.tdc__status-icon {
+	font-size: 1.05em;
+	line-height: 1.1;
+	flex-shrink: 0;
+}
+
+.tdc__status-label {
+	font-size: 1em;
+}
+
+// ─── Status-specific badge accent colours ────────────────────────────────────
+
+.tdc__status-badge--serving {
+	border-color: rgba(70, 188, 170, 0.5);
+	background: rgba(70, 188, 170, #{tdc-zone-a(0.18)});
+	color: #a0ffe8;
+}
+
+.tdc__status-badge--completed {
+	border-color: rgba(70, 200, 100, 0.4);
+	background: rgba(70, 200, 100, #{tdc-zone-a(0.15)});
+	color: #a0ffb8;
+}
+
+.tdc__status-badge--cancelled,
+.tdc__status-badge--no-show {
+	border-color: rgba(243, 84, 33, 0.4);
+	background: rgba(243, 84, 33, #{tdc-zone-a(0.15)});
+	color: #ffb8a0;
+}
+
+.tdc__status-badge--postponed {
+	border-color: rgba(255, 207, 82, 0.4);
+	background: rgba(255, 207, 82, #{tdc-zone-a(0.15)});
+	color: #ffe8a0;
+}
+
+.tdc__status-badge--waiting {
+	border-color: rgba(255, 165, 40, 0.45);
+	background: rgba(255, 140, 10, #{tdc-zone-a(0.18)});
+	color: #ffd090;
+}
+
+// ─── Showcase / picker layout ─────────────────────────────────────────────────
+
+.tdc-showcase {
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+}
+
+.tdc-showcase__title {
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: var(--bs-body-color);
+	margin: 0;
+}
+
+.tdc-showcase__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 1.25rem;
+}
+
+.tdc-showcase__item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.tdc-showcase__item-label {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--bs-secondary-color, #6c757d);
+	text-align: center;
+}
+
+.tdc-showcase__item-description {
+	font-size: 0.7rem;
+	color: var(--bs-secondary-color, #6c757d);
+	text-align: center;
+	opacity: 0.75;
+}
+
+// ─── Theme swatch (for picker UI) ────────────────────────────────────────────
+
+.tdc-swatch {
+	display: inline-block;
+	width: 28px;
+	height: 28px;
+	border-radius: 6px;
+	border: 2px solid transparent;
+	cursor: pointer;
+	transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+	flex-shrink: 0;
+
+	&:hover {
+		transform: scale(1.12);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+	}
+
+	&.tdc-swatch--active {
+		border-color: rgba($primary, 0.85);
+		box-shadow: 0 0 0 3px rgba($primary, 0.22);
+		transform: scale(1.08);
+	}
+}
+
+// ─── Zone appearance picker (zone editor — fill vs theme) ─────────────────────
+
+.zone-appearance-picker {
+	display: flex;
+	flex-direction: column;
+	gap: 0.85rem;
+}
+
+.zone-appearance-picker__modes {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+}
+
+.zone-appearance-picker__mode-option {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.zone-appearance-picker__label {
+	display: block;
+	font-size: 0.72rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--bs-secondary-color, #6c757d);
+	margin-bottom: 0.35rem;
+}
+
+.zone-appearance-picker__fill-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.zone-appearance-picker__color-input {
+	width: 40px;
+	height: 32px;
+	padding: 2px;
+	border: 1px solid var(--bs-border-color);
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+.zone-appearance-picker__hex {
+	max-width: 120px;
+	font-family: monospace;
+	font-size: 0.8rem;
+}
+
+.zone-appearance-picker__swatches {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.45rem;
+}
+
+.zone-appearance-picker__themes--error .zone-appearance-picker__swatches {
+	outline: 1px solid #ef4444;
+	outline-offset: 4px;
+	border-radius: 8px;
+}
+
+.zone-appearance-picker__theme-name {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--bs-body-color);
+	margin-top: 0.25rem;
+}
+
+.zone-appearance-picker__preview-card {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0.5rem 0;
+
+	.tdc {
+		width: 260px;
+		height: 280px;
+		flex: 0 0 auto;
+	}
+}
+
+// Template editor sidebar — explicit preview height (do not use container-type:size
+// on this wrapper — it collapses the box and clips the theme to a thin strip).
+.tdc-panel .zone-appearance-picker__preview-card {
+	min-height: 148px;
+	overflow: hidden;
+	border-radius: 6px;
+
+	.tdc {
+		width: 100%;
+		max-width: 100%;
+		height: 148px;
+		min-height: 148px;
+		flex: 0 0 148px;
+		// cqw rules for Pipboy etc. query this fill root, not the wrapper.
+		container-type: size;
+	}
+}
+
+.zone-appearance-picker__zone-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 0.85rem;
+}
+
+.zone-appearance-picker__control-block {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	min-width: 0;
+}
+
+// Template editor + theme picker — toned-down token glow (no large backdrop panel).
+.tdc--preview {
+	.tdc__token {
+		--tdc-token-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+		text-shadow: var(--tdc-token-shadow);
+		animation: none;
+	}
+
+	// Glass Panel: hide bloom panel; keep a light text shadow only
+	&.tdc--arctic-white {
+		.tdc-aw-bloom {
+			display: none;
+		}
+
+		.tdc__token {
+			--tdc-token-shadow: 0 1px 6px rgba(255, 255, 255, 0.14);
+			text-shadow: var(--tdc-token-shadow);
+		}
+	}
+
+	// Theme 1 · Digital Crimson — keep zoom + ember glow animation
+	&.tdc--digital-crimson .tdc__token {
+		animation: tdc-token-glow 3.8s ease-in-out infinite;
+		display: inline-block;
+		transform-origin: center center;
+	}
+
+	&.tdc--onyx-gold .tdc__token {
+		--tdc-token-shadow: 0 2px 12px rgba(212, 175, 55, 0.22);
+	}
+
+	&.tdc--imperial-court {
+		.tdc__body::before {
+			display: none;
+		}
+
+		.tdc__token {
+			--tdc-token-shadow: 0 2px 10px rgba(0, 0, 0, 0.32);
+		}
+	}
+
+	&.tdc--crimson-banner .tdc__token {
+		animation: tdc-cb-token-float 5s ease-in-out infinite;
+		--tdc-token-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+	}
+}
+
+// Wide TV zones: cap token by body column width/height (ResizeObserver + CSS safety net).
+// Pipboy uses FlipTokenDisplay — excluded (see _themes-new-fill-overrides.scss).
+.tdc--fill:not(.tdc--pipboy-terminal) .tdc__body .tdc__token {
+	font-size: min(
+		calc(var(--tdc-token-fill-em, 3.35) * 1em),
+		calc(94cqw / (var(--tdc-token-chars, 2) * 0.54 + 0.32)),
+		calc(40cqh)
+	);
+}
+
+// Preview mode — slightly larger token numeral (template editor + theme picker).
+.tdc--preview.tdc--fill:not(.tdc--pipboy-terminal) .tdc__body .tdc__token {
+	font-size: min(
+		calc(var(--tdc-token-fill-em, 3.35) * 1.14 * 1em),
+		calc(94cqw / (var(--tdc-token-chars, 2) * 0.50 + 0.26)),
+		calc(45cqh)
+	);
+}
+
+// Theme 1 · Digital Crimson — extra bump in template editor preview
+.tdc--preview.tdc--fill.tdc--digital-crimson .tdc__body .tdc__token {
+	font-size: min(
+		calc(var(--tdc-token-fill-em, 3.35) * 1.24 * 1em),
+		calc(94cqw / (var(--tdc-token-chars, 2) * 0.47 + 0.22)),
+		calc(48cqh)
+	);
+}
+
+.tdc--preview:not(.tdc--fill) {
+	.tdc__token {
+		font-size: 4.05em;
+	}
+
+	&.tdc--digital-crimson .tdc__token {
+		font-size: 5.55em;
+	}
+
+	&.tdc--onyx-gold .tdc__token {
+		font-size: 4.95em;
+	}
+
+	&.tdc--arctic-white .tdc__token {
+		font-size: 4.4em;
+	}
+
+	&.tdc--imperial-court .tdc__token {
+		font-size: 4.35em;
+	}
+
+	&.tdc--crimson-banner .tdc__token {
+		font-size: 4.28em;
+	}
+}
+
+// Themes 6–9 · fill overrides (must be last — after generic `.tdc--fill` rules)
+@import 'themes-new-fill-overrides';
+
+// Zone opacity — status badge fill only (backdrop blur would fight alpha fade)
+.tdc--zone-bg-fade .tdc__status-badge {
+	backdrop-filter: none !important;
+	-webkit-backdrop-filter: none !important;
+}

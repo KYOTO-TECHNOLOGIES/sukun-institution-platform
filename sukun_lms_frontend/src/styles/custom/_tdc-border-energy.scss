@@ -1,0 +1,168 @@
+// Shared rotating border / header beam / divider trace / history pill energy
+// Used by all token display themes (theme-specific accent colors in each file).
+
+@property --tdc-be-angle {
+	syntax: '<angle>';
+	initial-value: 0deg;
+	inherits: false;
+}
+
+@keyframes tdc-be-border-spin {
+	to {
+		--tdc-be-angle: 360deg;
+	}
+}
+
+@keyframes tdc-be-header-flow {
+	0% {
+		transform: translateX(-120%);
+		opacity: 0.35;
+	}
+	15% {
+		opacity: 0.95;
+	}
+	85% {
+		opacity: 0.95;
+	}
+	100% {
+		transform: translateX(420%);
+		opacity: 0.35;
+	}
+}
+
+@keyframes tdc-be-divider-trace {
+	0% {
+		top: 0;
+		opacity: 0.35;
+	}
+	50% {
+		opacity: 0.9;
+	}
+	100% {
+		top: calc(100% - 22%);
+		opacity: 0.35;
+	}
+}
+
+@keyframes tdc-be-card-energy {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+// Outer card border — apply on theme root (may need free ::after or dedicated layer)
+@mixin tdc-outer-border-energy($highlight, $soft: transparent, $mid: $soft) {
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		pointer-events: none;
+		border-radius: inherit;
+		padding: 1px;
+		background: conic-gradient(
+			from var(--tdc-be-angle, 0deg),
+			transparent 0deg,
+			$soft 58deg,
+			$highlight 76deg,
+			$mid 84deg,
+			$soft 98deg,
+			transparent 180deg
+		);
+		-webkit-mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		animation: tdc-be-border-spin 10s linear infinite;
+	}
+}
+
+// Header bottom sweep
+.tdc-be-header-beam {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	overflow: hidden;
+	pointer-events: none;
+	z-index: 2;
+
+	&::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 22%;
+		height: 100%;
+		animation: tdc-be-header-flow 10s linear infinite;
+	}
+}
+
+// Column split trace (fill layout)
+.tdc-be-divider {
+	display: none;
+	position: absolute;
+	top: 11%;
+	bottom: 14%;
+	left: var(--tdc-be-divider-pos, 58%);
+	width: 1px;
+	transform: translateX(-50%);
+	z-index: 3;
+	pointer-events: none;
+
+	> span {
+		position: absolute;
+		left: 50%;
+		width: 3px;
+		height: 22%;
+		transform: translateX(-50%);
+		animation: tdc-be-divider-trace 10s ease-in-out infinite alternate;
+	}
+}
+
+.tdc--fill .tdc-be-divider {
+	display: block;
+}
+
+.tdc--fill.tdc--onyx-gold .tdc-be-divider,
+.tdc--fill.tdc--imperial-court .tdc-be-divider,
+.tdc--fill.tdc--arctic-white .tdc-be-divider {
+	display: none;
+}
+
+@mixin tdc-history-card-border-energy($highlight, $soft, $inner-bg) {
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+
+	&::before {
+		content: '';
+		position: absolute;
+		inset: -120%;
+		background: conic-gradient(
+			from 0deg,
+			transparent 0deg,
+			$soft 40deg,
+			$highlight 52deg,
+			$soft 64deg,
+			transparent 120deg
+		);
+		animation: tdc-be-card-energy 10s linear infinite;
+		z-index: -2;
+	}
+
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 1px;
+		border-radius: inherit;
+		background: $inner-bg;
+		opacity: var(--tdc-zone-bg-opacity, 1);
+		z-index: -1;
+	}
+}

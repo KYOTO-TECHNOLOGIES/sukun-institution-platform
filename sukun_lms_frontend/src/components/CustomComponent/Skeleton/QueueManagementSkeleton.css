@@ -1,0 +1,64 @@
+.qm-skeleton-card {
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 0.75rem;
+	padding: 1rem;
+	background: #fff;
+}
+
+.qm-skeleton-shimmer {
+	background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 20%, #f1f5f9 40%, #f1f5f9 100%);
+	background-size: 220px 100%;
+	animation: qm-skeleton-loading 1.2s ease-in-out infinite;
+	border-radius: 0.5rem;
+}
+
+.qm-skeleton-row {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.qm-skeleton-icon {
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: 0.625rem;
+}
+
+.qm-skeleton-title {
+	height: 1rem;
+	flex: 1;
+}
+
+.qm-skeleton-line {
+	height: 0.75rem;
+	width: 100%;
+}
+
+.qm-skeleton-line--short {
+	width: 70%;
+}
+
+.qm-skeleton-pill {
+	height: 1.25rem;
+	width: 40%;
+	border-radius: 999px;
+}
+
+@keyframes qm-skeleton-loading {
+	0% {
+		background-position: -220px 0;
+	}
+	100% {
+		background-position: calc(220px + 100%) 0;
+	}
+}
+
+[theme='dark'] .qm-skeleton-card {
+	border-color: rgba(255, 255, 255, 0.08);
+	background: #1e1e2f;
+}
+
+[theme='dark'] .qm-skeleton-shimmer {
+	background: linear-gradient(90deg, #2b2b3f 0%, #3a3a52 20%, #2b2b3f 40%, #2b2b3f 100%);
+	background-size: 220px 100%;
+}

@@ -1,0 +1,240 @@
+.sd-skeleton-page {
+	display: grid;
+	gap: 1rem;
+}
+
+.sd-skeleton-card {
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 0.75rem;
+	background: #fff;
+	padding: 1rem;
+}
+
+.sd-skeleton-shimmer {
+	background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 20%, #f1f5f9 40%, #f1f5f9 100%);
+	background-size: 220px 100%;
+	animation: sd-skeleton-loading 1.2s ease-in-out infinite;
+	border-radius: 0.5rem;
+}
+
+.sd-skeleton-top-card {
+	display: flex;
+	flex-direction: column;
+}
+
+@media (min-width: 1200px) {
+	.sd-skeleton-top-card {
+		flex-direction: row;
+	}
+}
+
+.sd-skeleton-top-left {
+	flex: 1 1 60%;
+	padding: 1rem;
+}
+
+.sd-skeleton-top-right {
+	flex: 1 1 40%;
+	min-width: 320px;
+	padding: 1rem;
+	border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+@media (min-width: 1200px) {
+	.sd-skeleton-top-right {
+		border-top: none;
+		border-left: 1px solid rgba(0, 0, 0, 0.08);
+	}
+}
+
+.sd-skeleton-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+}
+
+.sd-skeleton-icon {
+	width: 3rem;
+	height: 3rem;
+	border-radius: 0.75rem;
+	flex-shrink: 0;
+}
+
+.sd-skeleton-title-block {
+	flex: 1;
+	min-width: 0;
+}
+
+.sd-skeleton-title {
+	height: 1.35rem;
+	width: 55%;
+	margin-bottom: 0.5rem;
+}
+
+.sd-skeleton-subtitle {
+	height: 0.8rem;
+	width: 40%;
+}
+
+.sd-skeleton-badge {
+	height: 1.75rem;
+	width: 5.5rem;
+	border-radius: 2rem;
+}
+
+.sd-skeleton-button {
+	height: 2rem;
+	width: 7rem;
+	flex-shrink: 0;
+}
+
+.sd-skeleton-info-grid {
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
+
+.sd-skeleton-info-tile {
+	grid-column: span 6;
+	border: 1px solid rgba(0, 0, 0, 0.06);
+	border-radius: 0.75rem;
+	padding: 0.75rem;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.sd-skeleton-info-tile--sm {
+	grid-column: span 4;
+}
+
+.sd-skeleton-info-tile--wide {
+	grid-column: span 12;
+}
+
+.sd-skeleton-info-icon {
+	width: 2.125rem;
+	height: 2.125rem;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.sd-skeleton-line {
+	height: 0.75rem;
+	width: 100%;
+}
+
+.sd-skeleton-line--label {
+	width: 45%;
+	margin-bottom: 0.35rem;
+}
+
+.sd-skeleton-line--value {
+	width: 70%;
+}
+
+.sd-skeleton-stat-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.75rem;
+}
+
+.sd-skeleton-stat-tile {
+	border: 1px solid rgba(0, 0, 0, 0.06);
+	border-radius: 0.75rem;
+	padding: 0.75rem;
+}
+
+.sd-skeleton-stat-head {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+
+.sd-skeleton-stat-icon {
+	width: 1.875rem;
+	height: 1.875rem;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.sd-skeleton-value {
+	height: 1.25rem;
+	width: 35%;
+}
+
+.sd-skeleton-panels-row {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1rem;
+}
+
+@media (min-width: 1200px) {
+	.sd-skeleton-panels-row {
+		grid-template-columns: 5fr 7fr;
+	}
+}
+
+.sd-skeleton-panel-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1rem;
+}
+
+.sd-skeleton-subtitle-block {
+	height: 1rem;
+	width: 42%;
+}
+
+.sd-skeleton-table-head {
+	height: 2.25rem;
+}
+
+.sd-skeleton-table-row {
+	height: 2.5rem;
+}
+
+.sd-skeleton-events-card {
+	margin-top: 0.25rem;
+}
+
+.sd-skeleton-timeline-row {
+	height: 3.5rem;
+}
+
+@keyframes sd-skeleton-loading {
+	0% {
+		background-position: -220px 0;
+	}
+	100% {
+		background-position: calc(220px + 100%) 0;
+	}
+}
+
+[theme='dark'] .sd-skeleton-card,
+[data-theme='dark'] .sd-skeleton-card {
+	border-color: rgba(255, 255, 255, 0.08);
+	background: #1e1e2f;
+}
+
+[theme='dark'] .sd-skeleton-top-right,
+[data-theme='dark'] .sd-skeleton-top-right {
+	border-color: rgba(255, 255, 255, 0.08);
+}
+
+[theme='dark'] .sd-skeleton-info-tile,
+[data-theme='dark'] .sd-skeleton-info-tile,
+[theme='dark'] .sd-skeleton-stat-tile,
+[data-theme='dark'] .sd-skeleton-stat-tile {
+	border-color: rgba(255, 255, 255, 0.08);
+}
+
+[theme='dark'] .sd-skeleton-shimmer,
+[data-theme='dark'] .sd-skeleton-shimmer {
+	background: linear-gradient(90deg, #2b2b3f 0%, #3a3a52 20%, #2b2b3f 40%, #2b2b3f 100%);
+	background-size: 220px 100%;
+}

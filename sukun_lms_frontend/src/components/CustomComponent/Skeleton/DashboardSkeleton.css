@@ -1,0 +1,194 @@
+.db-skeleton-page {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+.db-skeleton-card {
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 0.75rem;
+	background: #fff;
+	padding: 1rem;
+	box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04);
+	height: 100%;
+}
+
+.db-skeleton-shimmer {
+	background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 20%, #f1f5f9 40%, #f1f5f9 100%);
+	background-size: 220px 100%;
+	animation: db-skeleton-loading 1.2s ease-in-out infinite;
+	border-radius: 0.5rem;
+}
+
+.db-skeleton-summary-grid {
+	display: grid;
+	gap: 0.75rem;
+	grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 576px) {
+	.db-skeleton-summary-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 768px) {
+	.db-skeleton-summary-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 992px) {
+	.db-skeleton-summary-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 1200px) {
+	.db-skeleton-summary-grid {
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+	}
+}
+
+.db-skeleton-stat-tile {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.75rem;
+}
+
+.db-skeleton-stat-icon {
+	width: 3rem;
+	height: 3rem;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.db-skeleton-stat-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.db-skeleton-line {
+	height: 0.75rem;
+	width: 100%;
+}
+
+.db-skeleton-line--label {
+	width: 70%;
+	margin-bottom: 0.5rem;
+}
+
+.db-skeleton-line--value {
+	width: 40%;
+	height: 1.5rem;
+}
+
+.db-skeleton-charts-row {
+	display: grid;
+	gap: 0.75rem;
+	grid-template-columns: 1fr;
+}
+
+@media (min-width: 992px) {
+	.db-skeleton-charts-row {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.db-skeleton-chart-header {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+}
+
+.db-skeleton-chart-header-icon {
+	width: 1.5rem;
+	height: 1.5rem;
+	border-radius: 0.35rem;
+	flex-shrink: 0;
+}
+
+.db-skeleton-chart-header-title {
+	height: 1.1rem;
+	width: 55%;
+}
+
+.db-skeleton-chart-body {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1rem;
+	padding: 0.5rem 0 0.25rem;
+	min-height: 320px;
+	justify-content: center;
+}
+
+.db-skeleton-donut {
+	width: 200px;
+	height: 200px;
+	border-radius: 50%;
+	position: relative;
+}
+
+.db-skeleton-donut::after {
+	content: '';
+	position: absolute;
+	inset: 22%;
+	border-radius: 50%;
+	background: #fff;
+}
+
+.db-skeleton-legend {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.75rem 1.25rem;
+	width: 100%;
+	max-width: 320px;
+}
+
+.db-skeleton-legend-item {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.db-skeleton-legend-dot {
+	width: 0.65rem;
+	height: 0.65rem;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.db-skeleton-legend-label {
+	width: 4.5rem;
+	height: 0.65rem;
+}
+
+@keyframes db-skeleton-loading {
+	0% {
+		background-position: -220px 0;
+	}
+	100% {
+		background-position: calc(220px + 100%) 0;
+	}
+}
+
+[theme='dark'] .db-skeleton-card,
+[data-theme='dark'] .db-skeleton-card {
+	border-color: rgba(255, 255, 255, 0.08);
+	background: #1e1e2f;
+}
+
+[theme='dark'] .db-skeleton-donut::after,
+[data-theme='dark'] .db-skeleton-donut::after {
+	background: #1e1e2f;
+}
+
+[theme='dark'] .db-skeleton-shimmer,
+[data-theme='dark'] .db-skeleton-shimmer {
+	background: linear-gradient(90deg, #2b2b3f 0%, #3a3a52 20%, #2b2b3f 40%, #2b2b3f 100%);
+	background-size: 220px 100%;
+}

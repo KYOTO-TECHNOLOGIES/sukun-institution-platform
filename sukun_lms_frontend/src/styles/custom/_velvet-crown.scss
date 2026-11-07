@@ -1,0 +1,391 @@
+// Velvet Crown — velvet-crown
+// Premium royal lacquer: burgundy gloss, champagne gold emboss, serif display
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap');
+
+@keyframes tdc-vc-shimmer {
+	0% {
+		transform: translateX(-120%) skewX(-12deg);
+		opacity: 0;
+	}
+
+	15% {
+		opacity: 0.55;
+	}
+
+	50% {
+		opacity: 0.75;
+	}
+
+	85% {
+		opacity: 0.45;
+	}
+
+	100% {
+		transform: translateX(140%) skewX(-12deg);
+		opacity: 0;
+	}
+}
+
+@keyframes tdc-vc-gold-breathe {
+	0%,
+	100% {
+		filter: brightness(1);
+		text-shadow:
+			0 2px 0 rgba(0, 0, 0, 0.45),
+			0 0 18px rgba(232, 200, 114, 0.35);
+	}
+
+	50% {
+		filter: brightness(1.12);
+		text-shadow:
+			0 2px 0 rgba(0, 0, 0, 0.45),
+			0 0 28px rgba(245, 222, 179, 0.55),
+			0 0 48px rgba(201, 162, 39, 0.25);
+	}
+}
+
+@keyframes tdc-vc-seal-pulse {
+	0%,
+	100% {
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.12),
+			0 0 0 1px rgba(201, 162, 39, 0.45),
+			0 0 12px rgba(201, 162, 39, 0.15);
+	}
+
+	50% {
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.18),
+			0 0 0 1px rgba(232, 200, 114, 0.75),
+			0 0 22px rgba(232, 200, 114, 0.28);
+	}
+}
+
+@keyframes tdc-vc-history-enter {
+	0% {
+		opacity: 0;
+		transform: translateY(0.5em) scale(0.92);
+		border-color: rgba(201, 162, 39, 0.2);
+	}
+
+	60% {
+		opacity: 1;
+		transform: translateY(-0.04em) scale(1.03);
+		border-color: rgba(232, 200, 114, 0.85);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+		border-color: rgba(201, 162, 39, 0.45);
+	}
+}
+
+.tdc--velvet-crown {
+	--vc-burgundy: #1a0a12;
+	--vc-burgundy-mid: #2d0f1f;
+	--vc-gold: #e8c872;
+	--vc-gold-deep: #c9a227;
+	--vc-champagne: #f5deb3;
+	--vc-ivory: #faf6ee;
+	--vc-gold-glow: rgba(232, 200, 114, 0.45);
+
+	--tdc-bg: linear-gradient(155deg, #2d0f1f 0%, #1a0a12 48%, #12060e 100%);
+	--tdc-glow-color: transparent;
+	--tdc-text: var(--vc-ivory);
+	--tdc-text-sub: rgba(245, 222, 179, 0.78);
+	--tdc-text-label: rgba(232, 200, 114, 0.72);
+	--tdc-token-color: var(--vc-champagne);
+	--tdc-token-shadow: 0 4px 24px rgba(201, 162, 39, 0.35);
+	--tdc-border: rgba(201, 162, 39, 0.35);
+	--tdc-badge-bg: rgba(26, 10, 18, #{tdc-zone-a(0.65)});
+	--tdc-badge-text: var(--vc-champagne);
+	--tdc-badge-border: rgba(201, 162, 39, 0.55);
+
+	font-family: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	background: var(--tdc-bg);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.08),
+		inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+		0 12px 40px rgba(0, 0, 0, 0.55);
+	border: 1px solid rgba(201, 162, 39, 0.28);
+	border-radius: 14px;
+	overflow: hidden;
+
+	.tdc__glow {
+		display: none;
+	}
+
+	.tdc-vc-backdrop {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+		overflow: hidden;
+		border-radius: inherit;
+	}
+
+	.tdc-vc-lacquer-base {
+		position: absolute;
+		inset: 0;
+		background:
+			radial-gradient(ellipse 90% 70% at 50% 0%, rgba(80, 20, 45, 0.35) 0%, transparent 55%),
+			radial-gradient(ellipse 60% 50% at 80% 100%, rgba(40, 10, 25, 0.4) 0%, transparent 50%),
+			linear-gradient(165deg, #3a1228 0%, #1a0a12 55%, #0e0509 100%);
+	}
+
+	.tdc-vc-gloss-sheen {
+		position: absolute;
+		top: 0;
+		left: -40%;
+		width: 45%;
+		height: 100%;
+		background: linear-gradient(
+			105deg,
+			transparent 0%,
+			rgba(255, 255, 255, 0.03) 35%,
+			rgba(255, 255, 255, 0.14) 50%,
+			rgba(255, 255, 255, 0.03) 65%,
+			transparent 100%
+		);
+		animation: tdc-vc-shimmer 7s ease-in-out infinite;
+		pointer-events: none;
+	}
+
+	.tdc-vc-vignette {
+		position: absolute;
+		inset: 0;
+		box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.55);
+		pointer-events: none;
+	}
+
+	.tdc-vc-frame {
+		position: absolute;
+		inset: 0.45em;
+		border: 1px solid rgba(201, 162, 39, 0.22);
+		border-radius: 10px;
+		pointer-events: none;
+	}
+
+	.tdc-vc-ornament {
+		position: absolute;
+		width: 1.1em;
+		height: 1.1em;
+		border: 1px solid rgba(232, 200, 114, 0.55);
+		pointer-events: none;
+
+		&::after {
+			content: '';
+			position: absolute;
+			inset: 0.22em;
+			border: 1px solid rgba(201, 162, 39, 0.35);
+		}
+
+		&--tl {
+			top: 0.35em;
+			left: 0.35em;
+			border-right: none;
+			border-bottom: none;
+		}
+
+		&--tr {
+			top: 0.35em;
+			right: 0.35em;
+			border-left: none;
+			border-bottom: none;
+		}
+
+		&--bl {
+			bottom: 0.35em;
+			left: 0.35em;
+			border-right: none;
+			border-top: none;
+		}
+
+		&--br {
+			bottom: 0.35em;
+			right: 0.35em;
+			border-left: none;
+			border-top: none;
+		}
+	}
+
+	.tdc__header,
+	.tdc__body,
+	.tdc__footer,
+	.tdc__history {
+		position: relative;
+		z-index: 2;
+	}
+
+	.tdc__header {
+		border-bottom: 1px solid rgba(201, 162, 39, 0.35);
+		background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
+		padding-bottom: 0.28em;
+
+		&::after {
+			content: '';
+			display: block;
+			width: 42%;
+			height: 2px;
+			margin: 0.18em auto 0;
+			background: linear-gradient(
+				90deg,
+				transparent,
+				var(--vc-gold) 35%,
+				var(--vc-champagne) 50%,
+				var(--vc-gold) 65%,
+				transparent
+			);
+			opacity: 0.75;
+		}
+	}
+
+	.tdc__queue-name {
+		font-weight: 700;
+		font-size: 0.72em;
+		letter-spacing: 0.18em;
+		color: var(--vc-champagne);
+		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+		opacity: 0.95;
+	}
+
+	.tdc__subtitle {
+		font-family: 'Cormorant Garamond', Georgia, serif;
+		font-style: italic;
+		text-transform: none;
+		letter-spacing: 0.04em;
+		color: rgba(245, 222, 179, 0.72);
+		font-size: 0.58em;
+	}
+
+	.tdc__token {
+		font-weight: 800;
+		line-height: 1;
+		background: linear-gradient(
+			180deg,
+			#fff8e8 0%,
+			var(--vc-champagne) 28%,
+			var(--vc-gold) 55%,
+			var(--vc-gold-deep) 100%
+		);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		-webkit-text-fill-color: transparent;
+		animation: tdc-vc-gold-breathe 4.5s ease-in-out infinite;
+		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+	}
+
+	.tdc__footer {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.tdc__status-badge {
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.12em;
+		padding: 0.38em 0.55em;
+		min-width: 4.2em;
+		border-radius: 999px;
+		background: radial-gradient(
+			circle at 50% 35%,
+			rgba(60, 20, 35, #{tdc-zone-a(0.9)}) 0%,
+			rgba(20, 8, 14, #{tdc-zone-a(0.95)}) 100%
+		);
+		border: 1px solid rgba(201, 162, 39, 0.55);
+		animation: tdc-vc-seal-pulse 3.2s ease-in-out infinite;
+	}
+
+	.tdc__status-label {
+		font-size: 0.42em;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+		color: var(--vc-champagne);
+	}
+
+	.tdc__history {
+		border-top: 1px solid rgba(201, 162, 39, 0.3);
+		background: rgba(10, 4, 8, #{tdc-zone-a(0.55)});
+	}
+
+	.tdc__history-label {
+		background: linear-gradient(
+			180deg,
+			rgba(201, 162, 39, #{tdc-zone-a(0.22)}) 0%,
+			rgba(26, 10, 18, #{tdc-zone-a(0.5)}) 100%
+		);
+		border-right-color: rgba(201, 162, 39, 0.28);
+	}
+
+	.tdc__history-label-text {
+		color: var(--vc-champagne);
+		writing-mode: horizontal-tb;
+		text-orientation: mixed;
+		transform: none;
+		font-size: 0.24em !important;
+		gap: 0.08em !important;
+	}
+
+	.tdc__history-card {
+		background: rgba(0, 0, 0, #{tdc-zone-a(0.35)});
+		border: 1px solid rgba(201, 162, 39, 0.35);
+		border-radius: 6px;
+	}
+
+	.tdc__history-token {
+		color: var(--vc-champagne);
+		text-shadow: 0 0 8px var(--vc-gold-glow);
+	}
+
+	.tdc__history-counter-label,
+	.tdc__history-counter-num,
+	.tdc__history-time {
+		color: rgba(232, 200, 114, 0.78);
+	}
+
+	.tdc__history-card--enter {
+		animation: tdc-vc-history-enter 0.55s ease-out both;
+	}
+}
+
+.tdc--fill.tdc--velvet-crown {
+	border-radius: inherit;
+	padding: 0.55em;
+
+	.tdc-vc-frame {
+		inset: 0.4em;
+	}
+
+	.tdc-vc-ornament {
+		width: 0.9em;
+		height: 0.9em;
+	}
+
+	.tdc__header {
+		padding: 0.22em 0.5em 0.18em;
+	}
+
+	.tdc__body {
+		border-right: 1px solid rgba(201, 162, 39, 0.22);
+	}
+
+	.tdc__token {
+		font-size: 3.2em;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tdc--velvet-crown {
+		.tdc-vc-gloss-sheen,
+		.tdc__token,
+		.tdc__status-badge {
+			animation: none;
+		}
+	}
+}
