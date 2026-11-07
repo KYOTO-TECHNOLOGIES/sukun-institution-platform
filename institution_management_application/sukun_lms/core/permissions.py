@@ -2,6 +2,9 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 ADMIN_ROLES = {'INSTITUTION_ADMIN', 'PRINCIPAL'}
 ROLE_MODULES = {
+    'MARKETING': ({'admissions', 'academics', 'institutions'}, {'admissions'}),
+    'ADMISSIONS': ({'admissions', 'academics', 'institutions', 'students'}, {'admissions', 'students'}),
+    'HR': ({'staff', 'institutions', 'operations'}, {'staff', 'operations'}),
     'TEACHER': ({'institutions', 'academics', 'students', 'staff', 'attendance', 'examinations', 'exam_seating', 'tasks', 'communications', 'learning'},
                 {'attendance', 'examinations', 'exam_seating', 'tasks', 'learning'}),
     'ACCOUNTANT': ({'institutions', 'academics', 'students', 'finance'}, {'finance'}),

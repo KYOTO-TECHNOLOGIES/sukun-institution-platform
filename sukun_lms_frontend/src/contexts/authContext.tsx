@@ -95,7 +95,7 @@ export const AuthContextProvider: FC<IAuthContextProviderProps> = ({ children })
 			settings_read: false,
 			settings_write: false,
 		};
-		setPermissions(derivedPermissions);
+		setPermissions(profile.page_permission || derivedPermissions);
 	}, []);
 
 	const setLogOut = useCallback(() => {
@@ -118,8 +118,7 @@ export const AuthContextProvider: FC<IAuthContextProviderProps> = ({ children })
 	 */
 	useEffect(() => {
 		if (
-			location.['/login', '/register', '/register-institution'].includes(pathname) || pathname.includes('public') ||
-			location.pathname.startsWith('/screenstokenstatus')
+			shouldSkipAuthBoot(location.pathname)
 		) {
 			setUserData({});
 			setLoading(false);
@@ -155,7 +154,7 @@ export const AuthContextProvider: FC<IAuthContextProviderProps> = ({ children })
 					settings_read: false,
 					settings_write: false,
 				};
-				setPermissions(derivedPermissions);
+				setPermissions(profile.page_permission || derivedPermissions);
 			} catch (err: any) {
 				console.error('[authContext] profile fetch failed:', err?.response?.status, err?.message);
 				setUser('');

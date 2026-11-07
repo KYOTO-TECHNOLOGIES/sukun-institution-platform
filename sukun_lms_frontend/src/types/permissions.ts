@@ -1,4 +1,5 @@
 export interface PagePermissions {
+    [key: string]: boolean | undefined;
 	dashboard_read?: boolean;
 	classes_read?: boolean;
 	classes_write?: boolean;

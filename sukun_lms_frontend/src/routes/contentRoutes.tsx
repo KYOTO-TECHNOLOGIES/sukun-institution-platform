@@ -1,5 +1,7 @@
 import React, { lazy } from 'react';
 import { allRoutesObject } from './RoutesMenu';
+import { resources } from '../workspace/resources';
+const ResourcePage = lazy(() => import('../workspace/ResourcePage')); 
 
 const Dashboard = lazy(() => import('../pages/Dashboard/Dashboard'));
 const ClassesList = lazy(() => import('../pages/Academics/ClassesList'));
@@ -31,6 +33,7 @@ const AttendanceList = lazy(() => import('../pages/Attendance/List'));
 const MalpracticeList = lazy(() => import('../pages/Malpractice/List'));
 
 const contentRoutes = [
+    ...Object.entries(resources).map(([key, config]) => ({path:'/workspace/'+key, element:<ResourcePage />, exact:true, permissionKey:config.permission+'_read'})),
 	{
 		path: allRoutesObject.dashboard.path,
 		element: <Dashboard />,

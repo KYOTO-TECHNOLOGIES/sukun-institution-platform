@@ -1,3 +1,4 @@
+import { resources } from '../workspace/resources';
 import type { PagePermissions } from '../types/permissions';
 
 export interface RouteMenuItem {
@@ -128,7 +129,7 @@ export const allRoutesObject: Record<string, RouteMenuItem & { path: string }> =
 		icon: 'Payments',
 		path: '/fee-management',
 		subMenu: null,
-		permissionKey: 'arrangements_read',
+		permissionKey: 'finance_read',
 	},
 	library: {
 		id: 'library',
@@ -136,7 +137,7 @@ export const allRoutesObject: Record<string, RouteMenuItem & { path: string }> =
 		icon: 'LocalLibrary',
 		path: '/library',
 		subMenu: null,
-		permissionKey: 'arrangements_read',
+		permissionKey: 'library_read',
 	},
 	communications: {
 		id: 'communications',
@@ -232,6 +233,7 @@ export const allRoutesObject: Record<string, RouteMenuItem & { path: string }> =
  * Sidebar-visible routes.
  */
 export const AdminRoutes: Record<string, RouteMenuItem> = {
+    ...Object.fromEntries(Object.entries(resources).map(([key,c])=>[key,{id:key,text:c.title,path:'/workspace/'+key,icon:c.icon,subMenu:null,permissionKey:(c.permission+'_read') as keyof PagePermissions}])),
 	dashboard: {
 		id: 'dashboard',
 		text: 'Dashboard Hub',
@@ -334,7 +336,7 @@ export const AdminRoutes: Record<string, RouteMenuItem> = {
 		icon: 'Payments',
 		path: '/fee-management',
 		subMenu: null,
-		permissionKey: 'arrangements_read',
+		permissionKey: 'finance_read',
 	},
 	library: {
 		id: 'library',
@@ -342,7 +344,7 @@ export const AdminRoutes: Record<string, RouteMenuItem> = {
 		icon: 'LocalLibrary',
 		path: '/library',
 		subMenu: null,
-		permissionKey: 'arrangements_read',
+		permissionKey: 'library_read',
 	},
 	communications: {
 		id: 'communications',

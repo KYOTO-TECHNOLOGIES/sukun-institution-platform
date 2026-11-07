@@ -22,3 +22,11 @@ Each completed feature is committed and pushed independently. Known limitations 
 - Protected cookie-authenticated writes with CSRF and removed browser-readable refresh-token persistence.
 - Verification: all 17 backend tests pass; baseline frontend production build passes (large template bundle warning).
 
+
+## Marketing and admissions
+- Campaigns with budgets and channels, enquiry pipeline, follow-up completion, searchable paginated screens.
+- Document verification, reviewed decisions and transactional student enrollment with class-capacity and duplicate-account checks.
+- Enrollment creates student login, optional separate guardian login, and applicable mandatory fees.
+- Added marketing, admissions and HR roles; UI permissions now come from the API.
+- Verification: 23 backend tests pass, including enrollment idempotency and marketing role restrictions.
+

@@ -71,12 +71,19 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class AuthenticatedUserSerializer(serializers.ModelSerializer):
+    page_permission = serializers.SerializerMethodField()
+
+    def get_page_permission(self, user):
+        from .permissions_map import page_permissions
+        return page_permissions(user)
+
     full_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
         fields = (
             'id',
+            'page_permission',
             'phone_number',
             'email',
             'first_name',
