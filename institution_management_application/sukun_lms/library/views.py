@@ -20,6 +20,7 @@ class LibraryBookViewSet(SearchViewSet):
     def perform_update(self,serializer):
         self.validate_write(serializer)
         book=LibraryBook.objects.select_for_update().get(pk=serializer.instance.pk)
+        serializer.instance=book
         total=serializer.validated_data.get('total_copies',book.total_copies)
         outstanding=book.issues.filter(status__in=['ISSUED','OVERDUE','LOST']).count()
         if total < outstanding: raise ValidationError('Copies cannot be fewer than outstanding loans.')

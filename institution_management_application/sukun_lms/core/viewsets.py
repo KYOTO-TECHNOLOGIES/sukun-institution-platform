@@ -70,6 +70,8 @@ class SecureModelViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_update(self, serializer):
+        serializer.instance = self.queryset.model.objects.select_for_update().get(pk=serializer.instance.pk)
+        serializer.validate(serializer.validated_data)
         self.validate_write(serializer)
         actor_fields={'marked_by','evaluated_by','completed_by','noted_by','sender','reported_by','issued_by'}
         kwargs={f.name:self.request.user for f in self.queryset.model._meta.fields if f.name in actor_fields}

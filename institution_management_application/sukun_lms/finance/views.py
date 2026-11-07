@@ -12,6 +12,12 @@ class FeeStructureViewSet(SearchViewSet):
     queryset = FeeStructure.objects.select_related('class_obj','academic_year')
     serializer_class = FeeStructureSerializer
     search_fields = ('fee_name','class_obj__name')
+    def validate_write(self,serializer):
+        super().validate_write(serializer)
+        if serializer.instance and serializer.instance.student_fees.exists():
+            for key in ('class_obj','academic_year'):
+                if key in serializer.validated_data and serializer.validated_data[key].pk != getattr(serializer.instance,key+'_id'):
+                    raise ValidationError({key:'An issued fee structure cannot move to another class or academic year.'})
     def perform_destroy(self,instance):
         if instance.student_fees.exists():
             raise ValidationError('This fee structure has issued bills. Deactivate it instead.')
@@ -29,7 +35,8 @@ class StudentFeeViewSet(SearchViewSet):
         fee.recalculate_payment_status()
     @transaction.atomic
     def perform_update(self,serializer):
-        StudentFee.objects.select_for_update().get(pk=serializer.instance.pk)
+        serializer.instance = StudentFee.objects.select_for_update().get(pk=serializer.instance.pk)
+        serializer.validate(serializer.validated_data)
         self.validate_write(serializer)
         fee=serializer.save()
         fee.recalculate_payment_status()

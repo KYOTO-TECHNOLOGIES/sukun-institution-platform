@@ -53,3 +53,18 @@ class OperationsWorkflowTests(APITestCase):
         user=admin(self.inst,'+919876543211','MARKETING'); self.client.force_authenticate(user)
         self.assertEqual(self.client.get('/api/reports/export/fees/').status_code,403)
         self.assertEqual(self.client.get('/api/reports/export/enquiries/').status_code,200)
+
+    def test_stale_expense_edit_cannot_undo_concurrent_approval(self):
+        from types import SimpleNamespace
+        from rest_framework.exceptions import ValidationError
+        from .serializers import ExpenseSerializer
+        from .views import ExpenseViewSet
+        expense=Expense.objects.create(institution=self.inst,title='Supplies',category='SUPPLIES',amount=100,date=timezone.localdate())
+        serializer=ExpenseSerializer(expense,data={'amount':50},partial=True)
+        self.assertTrue(serializer.is_valid(),serializer.errors)
+        Expense.objects.filter(pk=expense.pk).update(status='APPROVED')
+        view=ExpenseViewSet();view.request=SimpleNamespace(user=self.user)
+        with self.assertRaises(ValidationError):view.perform_update(serializer)
+        expense.refresh_from_db()
+        self.assertEqual(expense.amount,100)
+        self.assertEqual(expense.status,'APPROVED')

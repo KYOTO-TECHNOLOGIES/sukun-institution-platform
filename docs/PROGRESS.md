@@ -66,3 +66,9 @@ Each completed feature is committed and pushed independently. Known limitations 
 - Added immutable numbered certificate issuance and escaped printable certificates.
 - Read-only users can open permitted profile/receipt links. Printing assets and protected media are proxied in development.
 - Verification: 47 backend tests pass; all management forms pass browser/API schema checks; admission approval, enrollment, student profile and printable certificate pass as one browser workflow.
+
+## Final transaction and deployment verification
+- Re-read records under a row lock before updates, preventing a stale bill edit from undercutting a new payment and a stale expense edit from undoing approval.
+- Retained issued fee structures within their original class/year and preserved current library inventory on edits.
+- Verification: 49 local backend tests pass. PostgreSQL API tests and production container build/startup passed in CI before this final transaction regression batch; final CI results are linked in the validation record.
+- All 14 local browser tests pass, including all management forms, role access, admissions-to-certificate and payment/refund reconciliation.

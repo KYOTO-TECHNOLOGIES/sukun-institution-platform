@@ -47,3 +47,18 @@ class FinanceWorkflowTests(APITestCase):
         response=self.client.patch('/api/finance/student-fees/'+str(self.fee.pk)+'/',{'amount_paid':900,'balance':100})
         self.assertEqual(response.status_code,200)
         self.fee.refresh_from_db(); self.assertEqual(self.fee.balance,1000)
+
+    def test_bill_edit_rechecks_payments_after_acquiring_lock(self):
+        from types import SimpleNamespace
+        from rest_framework.exceptions import ValidationError
+        from .serializers import StudentFeeSerializer
+        from .views import StudentFeeViewSet
+        # An edit was validated before another request collected a payment.
+        serializer=StudentFeeSerializer(self.fee,data={'total_amount':100},partial=True)
+        self.assertTrue(serializer.is_valid(),serializer.errors)
+        self.assertEqual(self.pay(400).status_code,201)
+        view=StudentFeeViewSet();view.request=SimpleNamespace(user=self.user)
+        with self.assertRaises(ValidationError):view.perform_update(serializer)
+        self.fee.refresh_from_db()
+        self.assertEqual(self.fee.total_amount,1000)
+        self.assertEqual(self.fee.amount_paid,400)
