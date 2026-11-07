@@ -117,3 +117,46 @@ test('every institution workspace and its create form loads',async({page})=>{
         });
     }
 });
+
+test('admission becomes an enrolled student with a printable certificate',async({page})=>{
+    await login(page);
+    const name='Admissions '+Date.now();
+    const phone='+917'+String(Date.now()).slice(-9);
+    await page.goto('/workspace/applications');
+    await page.getByRole('button',{name:'+ Add record',exact:true}).click();
+    await page.getByLabel('First name',{exact:false}).fill(name);
+    await page.getByLabel('Unique student login phone').fill(phone);
+    await page.getByLabel('Class division').selectOption({index:1});
+    await page.getByLabel('Academic year').selectOption({index:1});
+    await page.getByLabel('Documents verified').check();
+    await page.getByRole('button',{name:'Save record',exact:true}).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.getByLabel('Search records').fill(name);
+    const row=page.getByRole('row').filter({hasText:name});
+    await row.getByRole('button',{name:'Review',exact:true}).click();
+    await page.getByLabel('Decision').selectOption('APPROVED');
+    await page.getByRole('dialog').getByRole('button',{name:'Review',exact:true}).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await row.getByRole('button',{name:'Enroll student',exact:true}).click();
+    await page.getByLabel('Initial student password').fill(password);
+    await page.getByRole('dialog').getByRole('button',{name:'Enroll student',exact:true}).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(row.getByText('ENROLLED',{exact:false})).toBeVisible();
+    const application=(await (await page.request.get('/api/admissions/applications/?search='+encodeURIComponent(name))).json()).results[0];
+    await page.goto('/students/'+application.student);
+    await expect(page.getByRole('heading',{name,exact:true})).toBeVisible();
+    await page.getByRole('button',{name:'Certificate register',exact:true}).click();
+    await page.getByRole('link',{name:'Open register →'}).click();
+    await page.getByRole('button',{name:'+ Add record',exact:true}).click();
+    await page.getByLabel('Certificate type').selectOption('BONAFIDE');
+    const number='E2E-'+Date.now();
+    await page.getByLabel('Certificate number').fill(number);
+    await page.getByRole('button',{name:'Save record',exact:true}).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    const popup=page.waitForEvent('popup');
+    await page.getByRole('row').filter({hasText:number}).getByRole('button',{name:'Print certificate'}).click();
+    const certificate=await popup;
+    await expect(certificate.getByRole('heading',{name:'Bonafide Certificate'})).toBeVisible();
+    await expect(certificate.getByRole('cell',{name,exact:true})).toBeVisible();
+    await certificate.close();
+});

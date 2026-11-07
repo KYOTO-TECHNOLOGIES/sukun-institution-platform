@@ -62,7 +62,7 @@ class SecureModelViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def perform_create(self, serializer):
         self.validate_write(serializer)
-        actor_fields={'marked_by','evaluated_by','completed_by','noted_by','sender'}
+        actor_fields={'marked_by','evaluated_by','completed_by','noted_by','sender','reported_by','issued_by'}
         kwargs={f.name:self.request.user for f in self.queryset.model._meta.fields if f.name in actor_fields}
         instance = serializer.save(**kwargs)
         if not self.request.user.is_superuser and owner_id(instance) != str(self.request.user.institution_id):
@@ -71,7 +71,7 @@ class SecureModelViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def perform_update(self, serializer):
         self.validate_write(serializer)
-        actor_fields={'marked_by','evaluated_by','completed_by','noted_by','sender'}
+        actor_fields={'marked_by','evaluated_by','completed_by','noted_by','sender','reported_by','issued_by'}
         kwargs={f.name:self.request.user for f in self.queryset.model._meta.fields if f.name in actor_fields}
         instance = serializer.save(**kwargs)
         if not self.request.user.is_superuser and owner_id(instance) != str(self.request.user.institution_id):

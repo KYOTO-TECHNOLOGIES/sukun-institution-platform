@@ -9,7 +9,7 @@ def page_permissions(user):
         'library': 'library', 'communications': 'communications', 'admissions': 'admissions',
         'learning': 'learning', 'attendance': 'attendance', 'tasks': 'tasks',
         'examinations': 'examinations', 'expenses':'expenses', 'payroll':'payroll', 'assets':'assets',
-        'transport':'transport', 'hostel':'hostel', 'support':'support', 'frontdesk':'frontdesk',
+        'transport':'transport', 'hostel':'hostel', 'support':'support', 'frontdesk':'frontdesk', 'pastoral':'pastoral',
         'sessions': 'exam_seating', 'schedules': 'exam_seating', 'rooms': 'exam_seating',
         'rules': 'exam_seating', 'arrangements': 'exam_seating', 'malpractice': 'exam_seating',
     }

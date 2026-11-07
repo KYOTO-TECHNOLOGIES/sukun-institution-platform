@@ -59,3 +59,10 @@ Each completed feature is committed and pushed independently. Known limitations 
 - Repaired deep-link session restoration and redirected outdated management screens to the new workspace.
 - Upgraded vulnerable dependencies; npm audit now reports zero critical/high findings (15 lower-severity findings remain under review).
 - Verification: TypeScript and production build pass; 11 role/mobile browser tests plus all-workspace/form metadata verification pass.
+
+## Student development and certification
+- Replaced outdated student profile forms with a role-aware student record view and filtered registers.
+- Added memorization, prayer participation, student support and achievement registers; sensitive records have separate pastoral permissions.
+- Added immutable numbered certificate issuance and escaped printable certificates.
+- Read-only users can open permitted profile/receipt links. Printing assets and protected media are proxied in development.
+- Verification: 47 backend tests pass; all management forms pass browser/API schema checks; admission approval, enrollment, student profile and printable certificate pass as one browser workflow.

@@ -12,6 +12,8 @@ def validate_domain(model, data, instance=None):
             raise ValidationError({end:'Must be on or after '+start.replace('_',' ')+'.'})
     if label=='institutions.academicyear' and value('start_date')==value('end_date'):
         raise ValidationError({'end_date':'Academic year must span more than one day.'})
+    if label=='students.hifzprogress' and not 1<=value('ayah_from')<=value('ayah_to'):
+        raise ValidationError({'ayah_to':'The last ayah must follow the first ayah; both must be positive.'})
     if label=='students.student':
         user=value('user')
         if user and user.user_type!='STUDENT':

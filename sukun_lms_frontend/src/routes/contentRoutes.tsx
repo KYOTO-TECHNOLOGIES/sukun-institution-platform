@@ -7,8 +7,8 @@ const ResourcePage = lazy(() => import('../workspace/ResourcePage'));
 
 const Dashboard = lazy(() => import('../workspace/Dashboard'));
 const AccountPage = lazy(() => import('../workspace/AccountPage'));
-const StudentDetail = lazy(() => import('../pages/Students/StudentDetail'));
-const TeacherDetail = lazy(() => import('../pages/Staff/TeacherDetail'));
+const StudentDetail = lazy(() => import('../workspace/StudentProfile'));
+
 const DailyAttendance = lazy(() => import('../workspace/Attendance'));
 
 const ExamStudentsList = lazy(() => import('../pages/ExamStudents/List'));
@@ -88,7 +88,7 @@ const contentRoutes = [
 	},
 	{
 		path: allRoutesObject.teacherDetail.path,
-		element: <TeacherDetail />,
+		element: <Navigate to="/workspace/staff-profiles" replace />,
 		exact: true,
 		permissionKey: 'staff_read',
 	},

@@ -1,3 +1,4 @@
+import { pastoralResources } from './pastoralResources';
 import { academicResources } from './academicResources';
 import { operationsResources } from './operationsResources';
 import { financeResources } from './financeResources';
@@ -6,6 +7,7 @@ import { Resource, field, select, relation } from './resourceTypes';
 export type {Resource, Field, ResourceAction} from './resourceTypes';
 export const resources: Record<string, Resource> = {
     ...learningResources,
+    ...pastoralResources,
     ...academicResources,
     ...operationsResources,
     ...financeResources,

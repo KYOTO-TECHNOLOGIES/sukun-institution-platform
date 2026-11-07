@@ -138,3 +138,19 @@ class OperationalIntegrityTests(APITestCase):
             other=admin(institution('Other'),'+919876543212')
             self.client.force_authenticate(other)
             self.assertEqual(self.client.get('/media/avatar.txt').status_code,404)
+
+
+    def test_sensitive_student_support_is_restricted_and_certificates_are_immutable(self):
+        from students.models import DisciplineRecord, StudentCertificate
+        record=DisciplineRecord.objects.create(student=self.student,incident_date='2026-07-01',incident_type='OTHER',description='Private observation',action_taken='Support arranged')
+        accountant=admin(self.inst,'+919876543215','ACCOUNTANT')
+        self.client.force_authenticate(accountant)
+        self.assertEqual(self.client.get('/api/students/discipline-records/').status_code,403)
+        teacher=admin(self.inst,'+919876543216','TEACHER')
+        self.client.force_authenticate(teacher)
+        self.assertEqual(self.client.get('/api/students/discipline-records/').status_code,200)
+        self.client.force_authenticate(self.user)
+        certificate=StudentCertificate.objects.create(student=self.student,certificate_type='BONAFIDE',certificate_number='CERT-1',issue_date='2026-07-01',issued_by=self.user)
+        url=f'/api/students/student-certificates/{certificate.pk}/'
+        self.assertEqual(self.client.get(url+'print/').status_code,200)
+        self.assertEqual(self.client.patch(url,{'certificate_number':'CHANGED'}).status_code,405)

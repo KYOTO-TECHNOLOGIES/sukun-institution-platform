@@ -2,10 +2,10 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 ADMIN_ROLES = {'INSTITUTION_ADMIN', 'PRINCIPAL'}
 MODULES = {'academics','students','staff','attendance','examinations','exam_seating','tasks','communications',
-           'learning','admissions','finance','library','expenses','payroll','assets','transport','hostel','support','frontdesk'}
+           'learning','admissions','finance','library','expenses','payroll','assets','transport','hostel','support','frontdesk','pastoral'}
 ROLE_MODULES = {
-    'TEACHER': ({'institutions','academics','students','staff','attendance','examinations','exam_seating','tasks','communications','learning','support'},
-                {'attendance','examinations','exam_seating','tasks','learning','support'}),
+    'TEACHER': ({'institutions','academics','students','staff','attendance','examinations','exam_seating','tasks','communications','learning','support','pastoral'},
+                {'attendance','examinations','exam_seating','tasks','learning','support','pastoral'}),
     'ACCOUNTANT': ({'institutions','academics','students','finance','expenses','payroll'}, {'finance','expenses','payroll'}),
     'LIBRARIAN': ({'institutions','students','library'}, {'library'}),
     'MARKETING': ({'admissions','academics','institutions','frontdesk'}, {'admissions','frontdesk'}),

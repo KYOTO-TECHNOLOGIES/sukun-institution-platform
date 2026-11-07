@@ -52,6 +52,9 @@ export default defineConfig({
         strict: true,
       },
       proxy: {
+        '/static': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+        '/media': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+        '/health': { target: 'http://127.0.0.1:8000', changeOrigin: true },
         '/api': {
           target: 'http://127.0.0.1:8000',
           changeOrigin: true,
@@ -65,12 +68,6 @@ export default defineConfig({
 		  output: {
 			manualChunks: {
 			  reactVendor: ["react", "react-dom"], // Separate React
-			  mui: ["@mui/material", "@mui/icons-material","@mui/lab","@mui/styles"], // Separate MUI
-			  lodash: ["lodash-es"], // Separate Lodash
-			  highlight: ["highlight.js"], // Separate Highlight.js
-			  materialTable: ["@material-table/core"], // Separate Material-Table
-			  jspdf: ["jspdf"],
-        apexcharts: ["react-apexcharts", "apexcharts"],
 			},
 		  },
 		},
