@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
@@ -44,6 +46,14 @@ class UserSerializer(serializers.ModelSerializer):
             'is_phone_verified': {'required': False},
         }
 
+    def validate(self, attrs):
+        if attrs.get('password'):
+            try:
+                validate_password(attrs['password'], user=self.instance or User(**{k: v for k, v in attrs.items() if k != 'password'}))
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError({'password': exc.messages})
+        return attrs
+
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         if not password:
@@ -86,7 +96,10 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         request = self.context.get('request')
-        normalized_phone_number = normalize_phone_number(attrs['phone_number'])
+        try:
+            normalized_phone_number = normalize_phone_number(attrs['phone_number'])
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError({'phone_number': exc.messages})
         user = authenticate(
             request=request,
             phone_number=normalized_phone_number,

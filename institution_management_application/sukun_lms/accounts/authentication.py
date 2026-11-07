@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.authentication import SessionAuthentication
 
 
 class CookieJWTAuthentication(JWTAuthentication):
@@ -17,5 +18,7 @@ class CookieJWTAuthentication(JWTAuthentication):
         if raw_token is None:
             return None
 
+        if header is None:
+            SessionAuthentication().enforce_csrf(request)
         validated_token = self.get_validated_token(raw_token)
         return self.get_user(validated_token), validated_token

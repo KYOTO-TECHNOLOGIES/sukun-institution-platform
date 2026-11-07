@@ -135,6 +135,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_RATES': {'login': '20/min', 'registration': '10/hour'},
 }
 
 SIMPLE_JWT = {

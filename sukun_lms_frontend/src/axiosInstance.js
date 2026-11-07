@@ -41,6 +41,22 @@ const authAxiosFileUpload = axios.create({
 	withCredentials: true,
 });
 
+// Django protects cookie-authenticated writes with a CSRF token.
+let csrfPromise;
+const clients = [publicAxios, publicAxiosFileUpload, authAxios, authAxiosForCSV, authAxiosFileUpload];
+for (const client of clients) {
+    client.defaults.xsrfCookieName = 'csrftoken';
+    client.defaults.xsrfHeaderName = 'X-CSRFToken';
+    client.interceptors.request.use(async (config) => {
+        if (!['get', 'head', 'options'].includes((config.method || 'get').toLowerCase())) {
+            if (!csrfPromise) csrfPromise = axios.get('/api/auth/csrf/', { withCredentials: true })
+                .then(response => response.data.csrfToken).catch(error => { csrfPromise = null; throw error; });
+            config.headers['X-CSRFToken'] = await csrfPromise;
+        }
+        return config;
+    });
+}
+
 // Refresh token interceptor queue
 let isRefreshing = false;
 let failedQueue = [];
@@ -86,6 +102,7 @@ authAxios.interceptors.response.use(
 					originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
 					return authAxios(originalRequest);
 				}
+                throw new Error('Refresh response did not contain an access token.');
 			} catch (refreshErr) {
 				processQueue(refreshErr, null);
 				if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
@@ -101,10 +118,10 @@ authAxios.interceptors.response.use(
 );
 
 export const updateToken = (newToken) => {
-	authAxios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-	authAxiosFileUpload.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-	authAxios.defaults.baseURL = baseURL;
-	authAxiosFileUpload.defaults.baseURL = baseURL;
+    for (const client of [authAxios, authAxiosFileUpload, authAxiosForCSV]) {
+        if (newToken) client.defaults.headers.common['Authorization'] = 'Bearer ' + newToken;
+        else delete client.defaults.headers.common['Authorization'];
+    }
 };
 
 export const setInitialToken = () => {

@@ -20,18 +20,6 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { baseURL } from '../helpers/baseURL';
 
-axios.interceptors.request.use((request) => {
-  const token = Cookies.get('accessToken') || Cookies.get('token');
-  request.baseURL = baseURL;
-  // @ts-ignore
-  request.headers = {
-    "content-type": "application/json",
-    accept: "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-  request.withCredentials = true;
-  return request;
-});
 
 const App = () => {
 	getOS();

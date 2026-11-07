@@ -51,25 +51,11 @@ from .serializers import (
 from .services import import_students_from_lms, validate_seating_arrangement
 
 
-class ExamSeatingScopedViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
-    institution_lookup = None
+from core.viewsets import SecureModelViewSet
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        user = self.request.user
 
-        if not user.is_authenticated:
-            return queryset.none()
-
-        if user.is_superuser or not self.institution_lookup:
-            return queryset
-
-        user_institution_id = getattr(user, "institution_id", None)
-        if not user_institution_id:
-            return queryset.none()
-
-        return queryset.filter(**{self.institution_lookup: user_institution_id})
+class ExamSeatingScopedViewSet(SecureModelViewSet):
+    pass
 
 
 def build_model_viewset(model, serializer_class, institution_lookup=None):

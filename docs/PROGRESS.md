@@ -14,3 +14,11 @@ Existing Django apps cover institution settings, academics, students, staff, att
 6. Dashboard reports, UI integration, demo setup, deployment and regression checks.
 
 Each completed feature is committed and pushed independently. Known limitations and test results will be added as implementation proceeds.
+
+## Secure foundation
+- Prevented registration from overwriting existing accounts and required validated passwords.
+- Enforced institution boundaries on reads, updates and related records, including exam seating.
+- Added module permissions for administrators, teachers, accountants and librarians; unassigned and learner accounts cannot browse staff APIs.
+- Protected cookie-authenticated writes with CSRF and removed browser-readable refresh-token persistence.
+- Verification: all 17 backend tests pass; baseline frontend production build passes (large template bundle warning).
+

@@ -42,7 +42,7 @@ const PROFILE_URL = 'api/auth/me/';
 /** Routes that must work without a logged-in user (no profile fetch on boot). */
 function shouldSkipAuthBoot(pathname: string): boolean {
 	return (
-		pathname.includes('public') || pathname.startsWith('/screenstokenstatus')
+		['/login', '/register', '/register-institution'].includes(pathname) || pathname.includes('public') || pathname.startsWith('/screenstokenstatus')
 	);
 }
 
@@ -106,7 +106,7 @@ export const AuthContextProvider: FC<IAuthContextProviderProps> = ({ children })
 				setUserData({});
 				setPermissions(null);
 				clearAuthSession();
-				navigate(adminExists ? '/login' : '/createsuperadmin');
+				navigate('/login');
 				setLoading(false);
 			});
 	}, [adminExists, navigate]);
@@ -118,7 +118,7 @@ export const AuthContextProvider: FC<IAuthContextProviderProps> = ({ children })
 	 */
 	useEffect(() => {
 		if (
-			location.pathname.includes('public') ||
+			location.['/login', '/register', '/register-institution'].includes(pathname) || pathname.includes('public') ||
 			location.pathname.startsWith('/screenstokenstatus')
 		) {
 			setUserData({});

@@ -6,24 +6,15 @@ const REFRESH_TOKEN_KEY = 'refreshToken';
 /** Legacy key used by the global axios interceptor in App.tsx */
 const LEGACY_TOKEN_KEY = 'token';
 
-export const persistAuthSession = ({ access, refresh }) => {
-	if (access) {
-		Cookies.set(ACCESS_TOKEN_KEY, access);
-		Cookies.set(LEGACY_TOKEN_KEY, access);
-		updateToken(access);
-	}
-	if (refresh) {
-		Cookies.set(REFRESH_TOKEN_KEY, refresh);
-	}
+// Refresh credentials remain in the server-set HttpOnly cookie.
+export const persistAuthSession = ({ access }) => {
+    Cookies.remove(ACCESS_TOKEN_KEY);
+    Cookies.remove(REFRESH_TOKEN_KEY);
+    Cookies.remove(LEGACY_TOKEN_KEY);
+    if (access) updateToken(access);
 };
 
-export const restoreAuthTokenFromCookies = () => {
-	const token = Cookies.get(ACCESS_TOKEN_KEY) || Cookies.get(LEGACY_TOKEN_KEY);
-	if (token) {
-		updateToken(token);
-	}
-	return token ?? null;
-};
+export const restoreAuthTokenFromCookies = () => null;
 
 export const clearAuthSession = () => {
 	Cookies.remove(ACCESS_TOKEN_KEY);
