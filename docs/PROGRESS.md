@@ -37,3 +37,11 @@ Each completed feature is committed and pushed independently. Known limitations 
 - Teachers are limited to their assigned courses; guardians can review but cannot submit student work.
 - Verified lesson completion idempotency, hidden drafts/answers, quiz attempt limits, grading bounds and learner isolation (7 learning regression tests).
 
+
+## Finance and library operations
+- Added immutable collections, printable receipts, refund register, balance reconciliation, overpayment prevention and duplicate-reference checks.
+- Corrected mandatory fee assignment to the matching institution and academic year.
+- Library stock updates transactionally on issue and return; return is idempotent and loan history is preserved.
+- Added domain checks for class membership, timetable conflicts, exam marks and date ranges.
+- Verification: 35 backend tests pass. Updated TypeScript DOM library configuration for browser form APIs.
+

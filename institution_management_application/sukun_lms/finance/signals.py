@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from .models import FeeStructure, StudentFee, FeePayment
+from .models import FeeStructure, StudentFee, FeePayment, FeeRefund
 from students.models import Student
 import datetime
 
@@ -10,7 +10,9 @@ def generate_student_fees(sender, instance, created, **kwargs):
         # Get all active students in the class
         students = Student.objects.filter(
             division__class_obj=instance.class_obj,
-            is_active=True
+            is_active=True,
+            academic_year=instance.academic_year,
+            institution=instance.institution
         )
         
         standard_due_date = datetime.date.today() + datetime.timedelta(days=instance.due_days)
@@ -45,7 +47,7 @@ def generate_fees_for_new_student(sender, instance, created, **kwargs):
         year = instance.academic_year
         if not year:
             from institutions.models import AcademicYear
-            year = AcademicYear.objects.filter(is_current=True).first() or AcademicYear.objects.first()
+            year = AcademicYear.objects.filter(institution=instance.institution, is_current=True).first()
             
         # Find mandatory fee structures for this class and academic year
         fee_structures = FeeStructure.objects.filter(
@@ -79,3 +81,8 @@ def update_student_fee_balance_on_save(sender, instance, **kwargs):
 def update_student_fee_balance_on_delete(sender, instance, **kwargs):
     # Recalculate related StudentFee on delete
     instance.student_fee.recalculate_payment_status()
+
+
+@receiver(post_save, sender=FeeRefund)
+def update_balance_after_refund(sender, instance, **kwargs):
+    instance.payment.student_fee.recalculate_payment_status()

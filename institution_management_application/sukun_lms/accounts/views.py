@@ -137,3 +137,13 @@ class TeachingStaffView(APIView):
         users = User.objects.filter(institution=request.user.institution, is_active=True,
             user_type__in=['TEACHER','PRINCIPAL','INSTITUTION_ADMIN'])
         return Response([{'id':u.pk,'full_name':u.full_name or u.phone_number} for u in users])
+
+
+class DirectoryView(APIView):
+    def get(self, request):
+        from core.permissions import ADMIN_ROLES
+        if request.user.user_type not in ADMIN_ROLES | {'TEACHER','LIBRARIAN','ADMISSIONS','HR'} and not request.user.is_superuser:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied()
+        users = User.objects.filter(institution=request.user.institution, is_active=True).order_by('first_name')
+        return Response([{'id':u.pk,'full_name':u.full_name or u.phone_number,'user_type':u.user_type} for u in users])

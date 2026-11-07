@@ -34,6 +34,8 @@ class SecureModelViewSet(viewsets.ModelViewSet):
         return queryset.order_by('-created_at' if 'created_at' in fields else '-pk')
 
     def validate_write(self, serializer):
+        from .validation import validate_domain
+        validate_domain(self.queryset.model, serializer.validated_data, serializer.instance)
         user = self.request.user
         if not user.is_superuser:
             validate_relations(serializer.validated_data, user.institution_id)

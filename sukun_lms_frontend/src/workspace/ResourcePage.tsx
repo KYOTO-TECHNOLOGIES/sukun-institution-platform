@@ -86,8 +86,8 @@ export default function ResourcePage() {
         {list.isError?<div className='workspace-error' role='alert'>{errorMessage(list.error)} <button onClick={()=>list.refetch()}>Try again</button></div>:list.isLoading?<div className='workspace-empty'>Loading records…</div>:<>
         <div className='workspace-table-scroll'><table><thead><tr>{config.columns.map(c=><th key={c}>{label(c)}</th>)}{canWrite&&<th>Actions</th>}</tr></thead>
         <tbody>{rows.map((row:any)=><tr key={row.id}>{config.columns.map(c=><td key={c}>{typeof row[c]==='boolean'?(row[c]?'Yes':'No'):c==='status'||c==='stage'?<span className={'workspace-badge '+String(row[c]).toLowerCase()}>{label(row[c]||'Unknown')}</span>:String(row[c]??'—')}</td>)}
-        {canWrite&&<td className='workspace-row-actions'>{row.status!=='ENROLLED'&&<button onClick={()=>open(row)}>Edit</button>}
-            {(config.actions||[]).filter(a=>!a.visible||a.visible(row,userData.user_type)).map(a=><button key={a.label} onClick={()=>open(row,a)}>{a.label}</button>)}
+        {canWrite&&<td className='workspace-row-actions'>{!config.noEdit&&row.status!=='ENROLLED'&&<button onClick={()=>open(row)}>Edit</button>}
+            {(config.actions||[]).filter(a=>!a.visible||a.visible(row,userData.user_type)).map(a=><button key={a.label} onClick={()=>a.link?window.open(a.link(row),'_blank','noopener,noreferrer'):open(row,a)}>{a.label}</button>)}
             {!config.noDelete&&<button className='workspace-danger' onClick={()=>{setError('');setRemoving(row);}}>Delete</button>}</td>}</tr>)}</tbody></table></div>
         {!rows.length&&<div className='workspace-empty'><h3>{query?'No matching records':'Ready for your first record'}</h3><p>{query?'Try another name or keyword.':config.subtitle}</p>{canWrite&&!config.noCreate&&!query&&<button onClick={()=>open(null)}>Add your first record</button>}</div>}
         <footer className='workspace-pagination'><span>{count?Math.min(page*15+1,count):0}–{Math.min((page+1)*15,count)} of {count}</span><button disabled={!page} onClick={()=>setPage(p=>p-1)}>Previous</button><button disabled={(page+1)*15>=count} onClick={()=>setPage(p=>p+1)}>Next</button></footer></>}

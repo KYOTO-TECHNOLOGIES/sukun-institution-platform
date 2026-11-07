@@ -1,5 +1,8 @@
+from decimal import Decimal
 from django.conf import settings
 from django.db import models
+from django.core.validators import MinValueValidator
+from django.utils import timezone
 
 from core.models import BaseModel
 
@@ -54,17 +57,20 @@ class StudentFee(BaseModel):
 
     class Meta:
         db_table = 'student_fee'
+        constraints = [models.UniqueConstraint(fields=['student','fee_structure'], name='unique_student_fee_structure')]
 
     def __str__(self):
         return f'{self.student.admission_number} - {self.fee_structure.fee_name}'
 
     def recalculate_payment_status(self):
-        payments_sum = self.payments.aggregate(total=models.Sum('amount'))['total'] or 0
-        self.amount_paid = payments_sum
+        paid = self.payments.aggregate(total=models.Sum('amount'))['total'] or 0
+        refunded = FeeRefund.objects.filter(payment__student_fee=self).aggregate(total=models.Sum('amount'))['total'] or 0
+        self.amount_paid = paid - refunded
         self.balance = self.total_amount - self.amount_paid
         if self.balance <= 0:
-            self.balance = 0
             self.status = 'PAID'
+        elif self.due_date and self.due_date < timezone.localdate():
+            self.status = 'OVERDUE'
         elif self.amount_paid > 0:
             self.status = 'PARTIALLY_PAID'
         else:
@@ -96,9 +102,15 @@ class FeePayment(BaseModel):
         return f'Payment {self.receipt_number} - {self.amount}'
 
     def save(self, *args, **kwargs):
-        is_new = self._state.adding
         if not self.receipt_number:
-            import datetime, random
-            date_str = datetime.datetime.now().strftime('%Y%m%d')
-            self.receipt_number = f"RCPT-{date_str}-{random.randint(100000, 999999)}"
+            import uuid
+            self.receipt_number = 'RCPT-' + timezone.localdate().strftime('%Y%m%d') + '-' + uuid.uuid4().hex[:12].upper()
         super().save(*args, **kwargs)
+
+
+class FeeRefund(BaseModel):
+    payment = models.ForeignKey(FeePayment, on_delete=models.PROTECT, related_name='refunds')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    reason = models.TextField()
+    refunded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    reference = models.CharField(max_length=100, blank=True)

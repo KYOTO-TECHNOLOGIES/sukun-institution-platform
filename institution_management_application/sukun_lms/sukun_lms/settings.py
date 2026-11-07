@@ -129,6 +129,7 @@ AUTH_USER_MODEL = 'accounts.User'
 PHONE_DEFAULT_REGION = env('PHONE_DEFAULT_REGION')
 
 REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'core.exceptions.api_exception_handler',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'accounts.authentication.CookieJWTAuthentication',
     ),
@@ -150,6 +151,7 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
+    'CHECK_REVOKE_TOKEN': True,
     'ALGORITHM': 'HS256',
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
