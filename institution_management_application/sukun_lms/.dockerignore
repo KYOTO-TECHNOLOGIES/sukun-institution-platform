@@ -1,0 +1,13 @@
+.git
+node_modules
+venv
+__pycache__
+*.pyc
+.env
+.env.*
+db.sqlite3*
+media
+staticfiles
+build
+test-results
+playwright-report

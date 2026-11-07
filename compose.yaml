@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sukun
+      POSTGRES_USER: sukun
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/production.env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sukun -d sukun"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  api:
+    build: ./institution_management_application/sukun_lms
+    restart: unless-stopped
+    env_file: ./deploy/production.env
+    environment:
+      DEBUG: "False"
+      DATABASE_URL: postgresql://sukun:${POSTGRES_PASSWORD}@db:5432/sukun
+    command: ["gunicorn", "sukun_lms.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  web:
+    build: ./sukun_lms_frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - static_data:/static:ro
+volumes:
+  postgres_data:
+  media_data:
+  static_data:

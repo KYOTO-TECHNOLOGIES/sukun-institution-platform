@@ -17,3 +17,8 @@
 **/test-results/
 queue_management_system_frontend/
 .local/
+
+deploy/production.env
+*.dump
+
+.local-*.json
