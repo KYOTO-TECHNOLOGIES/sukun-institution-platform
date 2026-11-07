@@ -25,7 +25,7 @@ Run backend tests with `python scripts/dev.py test`. Frontend checks are `npm ru
 
 1. Copy `deploy/production.env.example` to `deploy/production.env`.
 2. Generate independent random secrets. Set the actual hostname, HTTPS origin, and institution timezone. Use a URL-safe database password because it is embedded in DATABASE_URL.
-3. Put an HTTPS reverse proxy in front of loopback port 8080. It must overwrite X-Forwarded-Proto and forward the real Host. The database and API have no published host ports.
+3. Put an HTTPS reverse proxy in front of loopback port 8080. It must overwrite X-Forwarded-Proto and X-Forwarded-For with the verified scheme and client IP, and forward the real Host. TRUSTED_PROXY_COUNT=2 assumes this edge proxy followed by the private Nginx frontend; adjust the count to the actual trusted proxy chain. The database and API have no published host ports.
 4. Build and initialize:
 
 ```

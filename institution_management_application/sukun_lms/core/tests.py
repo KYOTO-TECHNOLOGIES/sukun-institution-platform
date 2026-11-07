@@ -134,7 +134,7 @@ class OperationalIntegrityTests(APITestCase):
             self.user.profile_picture='avatar.txt';self.user.save()
             response=self.client.get('/media/avatar.txt')
             self.assertEqual(response.status_code,200)
-            response.close()
+            self.assertEqual(b''.join(response.streaming_content),b'Private attachment')
             other=admin(institution('Other'),'+919876543212')
             self.client.force_authenticate(other)
             self.assertEqual(self.client.get('/media/avatar.txt').status_code,404)

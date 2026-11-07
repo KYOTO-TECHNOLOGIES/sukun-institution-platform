@@ -140,9 +140,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'core.pagination.BoundedPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_THROTTLE_RATES': {'login': '20/min', 'registration': '10/hour'},
+    'NUM_PROXIES': env.int('TRUSTED_PROXY_COUNT', default=0),
 }
 
 SIMPLE_JWT = {
