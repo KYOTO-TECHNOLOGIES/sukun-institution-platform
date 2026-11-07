@@ -1,4 +1,20 @@
 export interface PagePermissions {
+    expenses_read?: boolean;
+    expenses_write?: boolean;
+    payroll_read?: boolean;
+    payroll_write?: boolean;
+    assets_read?: boolean;
+    assets_write?: boolean;
+    transport_read?: boolean;
+    transport_write?: boolean;
+    hostel_read?: boolean;
+    hostel_write?: boolean;
+    support_read?: boolean;
+    support_write?: boolean;
+    frontdesk_read?: boolean;
+    frontdesk_write?: boolean;
+    leave_read?: boolean;
+    leave_write?: boolean;
     admissions_read?: boolean;
     admissions_write?: boolean;
     learning_read?: boolean;

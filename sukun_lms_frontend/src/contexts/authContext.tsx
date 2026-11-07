@@ -37,7 +37,7 @@ interface IAuthContextProviderProps {
 	children: ReactNode;
 }
 
-const PROFILE_URL = 'api/auth/me/';
+const PROFILE_URL = '/api/auth/me/';
 
 /** Routes that must work without a logged-in user (no profile fetch on boot). */
 function shouldSkipAuthBoot(pathname: string): boolean {

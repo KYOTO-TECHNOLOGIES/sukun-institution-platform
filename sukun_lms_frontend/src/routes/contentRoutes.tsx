@@ -1,26 +1,15 @@
 import React, { lazy } from 'react';
+import { Navigate } from 'react-router-dom';
 import { allRoutesObject } from './RoutesMenu';
 import { resources } from '../workspace/resources';
 const LearnerPortal = lazy(() => import('../workspace/LearnerPortal'));
 const ResourcePage = lazy(() => import('../workspace/ResourcePage')); 
 
-const Dashboard = lazy(() => import('../pages/Dashboard/Dashboard'));
-const ClassesList = lazy(() => import('../pages/Academics/ClassesList'));
-const AcademicYearList = lazy(() => import('../pages/Academics/AcademicYearList'));
-const SyllabusList = lazy(() => import('../pages/Academics/SyllabusList'));
-const SubjectList = lazy(() => import('../pages/Academics/SubjectList'));
-const ClassSubjectList = lazy(() => import('../pages/Academics/ClassSubjectList'));
-const TimeTableList = lazy(() => import('../pages/Academics/TimeTableList'));
-const StudentsList = lazy(() => import('../pages/Students/StudentsList'));
+const Dashboard = lazy(() => import('../workspace/Dashboard'));
+const AccountPage = lazy(() => import('../workspace/AccountPage'));
 const StudentDetail = lazy(() => import('../pages/Students/StudentDetail'));
-const TeacherList = lazy(() => import('../pages/Staff/TeacherList'));
 const TeacherDetail = lazy(() => import('../pages/Staff/TeacherDetail'));
-const DailyAttendance = lazy(() => import('../pages/Attendance/DailyAttendance'));
-const AcademicExams = lazy(() => import('../pages/Examinations/AcademicExams'));
-const DailyTasks = lazy(() => import('../pages/Tasks/DailyTasks'));
-const FeeManagement = lazy(() => import('../pages/Finance/FeeManagement'));
-const LibraryManagement = lazy(() => import('../pages/Library/LibraryManagement'));
-const Communications = lazy(() => import('../pages/Communications/Communications'));
+const DailyAttendance = lazy(() => import('../workspace/Attendance'));
 
 const ExamStudentsList = lazy(() => import('../pages/ExamStudents/List'));
 const SessionsList = lazy(() => import('../pages/Sessions/List'));
@@ -34,6 +23,7 @@ const AttendanceList = lazy(() => import('../pages/Attendance/List'));
 const MalpracticeList = lazy(() => import('../pages/Malpractice/List'));
 
 const contentRoutes = [
+    {path:'/account',element:<AccountPage />,exact:true,permissionKey:'dashboard_read'},
     {path:'/portal',element:<LearnerPortal />,exact:true,permissionKey:'portal_read'},
     ...Object.entries(resources).map(([key, config]) => ({path:'/workspace/'+key, element:<ResourcePage />, exact:true, permissionKey:config.permission+'_read'})),
 	{
@@ -44,43 +34,43 @@ const contentRoutes = [
 	},
 	{
 		path: allRoutesObject.classes.path,
-		element: <ClassesList />,
+		element: <Navigate to="/workspace/classes" replace />,
 		exact: true,
 		permissionKey: allRoutesObject.classes.permissionKey,
 	},
 	{
 		path: allRoutesObject.academicYears.path,
-		element: <AcademicYearList />,
+		element: <Navigate to="/workspace/academic-years" replace />,
 		exact: true,
 		permissionKey: allRoutesObject.academicYears.permissionKey,
 	},
 	{
 		path: allRoutesObject.syllabi.path,
-		element: <SyllabusList />,
+		element: <Navigate to="/workspace/syllabi" replace />,
 		exact: true,
 		permissionKey: allRoutesObject.syllabi.permissionKey,
 	},
 	{
 		path: allRoutesObject.subjects.path,
-		element: <SubjectList />,
+		element: <Navigate to="/workspace/subjects" replace />,
 		exact: true,
 		permissionKey: allRoutesObject.subjects.permissionKey,
 	},
 	{
 		path: allRoutesObject.classSubjects.path,
-		element: <ClassSubjectList />,
+		element: <Navigate to="/workspace/class-subjects" replace />,
 		exact: true,
 		permissionKey: allRoutesObject.classSubjects.permissionKey,
 	},
 	{
 		path: allRoutesObject.timetable.path,
-		element: <TimeTableList />,
+		element: <Navigate to="/workspace/timetable" replace />,
 		exact: true,
 		permissionKey: allRoutesObject.timetable.permissionKey,
 	},
 	{
 		path: allRoutesObject.students.path,
-		element: <StudentsList />,
+		element: <Navigate to="/workspace/students" replace />,
 		exact: true,
 		permissionKey: allRoutesObject.students.permissionKey,
 	},
@@ -92,15 +82,15 @@ const contentRoutes = [
 	},
 	{
 		path: allRoutesObject.teachers.path,
-		element: <TeacherList />,
+		element: <Navigate to="/workspace/staff-profiles" replace />,
 		exact: true,
-		permissionKey: allRoutesObject.teachers.permissionKey,
+		permissionKey: 'staff_read',
 	},
 	{
 		path: allRoutesObject.teacherDetail.path,
 		element: <TeacherDetail />,
 		exact: true,
-		permissionKey: allRoutesObject.teacherDetail.permissionKey,
+		permissionKey: 'staff_read',
 	},
 	{
 		path: allRoutesObject.dailyAttendance.path,
@@ -110,33 +100,33 @@ const contentRoutes = [
 	},
 	{
 		path: allRoutesObject.academicExams.path,
-		element: <AcademicExams />,
+		element: <Navigate to="/workspace/exams" replace />,
 		exact: true,
-		permissionKey: allRoutesObject.academicExams.permissionKey,
+		permissionKey: 'examinations_read',
 	},
 	{
 		path: allRoutesObject.dailyTasks.path,
-		element: <DailyTasks />,
+		element: <Navigate to="/workspace/homework" replace />,
 		exact: true,
-		permissionKey: allRoutesObject.dailyTasks.permissionKey,
+		permissionKey: 'tasks_read',
 	},
 	{
 		path: allRoutesObject.feeManagement.path,
-		element: <FeeManagement />,
+		element: <Navigate to="/workspace/student-bills" replace />,
 		exact: true,
 		permissionKey: allRoutesObject.feeManagement.permissionKey,
 	},
 	{
 		path: allRoutesObject.library.path,
-		element: <LibraryManagement />,
+		element: <Navigate to="/workspace/books" replace />,
 		exact: true,
 		permissionKey: allRoutesObject.library.permissionKey,
 	},
 	{
 		path: allRoutesObject.communications.path,
-		element: <Communications />,
+		element: <Navigate to="/workspace/notices" replace />,
 		exact: true,
-		permissionKey: allRoutesObject.communications.permissionKey,
+		permissionKey: 'communications_read',
 	},
 	{
 		path: allRoutesObject.examStudents.path,

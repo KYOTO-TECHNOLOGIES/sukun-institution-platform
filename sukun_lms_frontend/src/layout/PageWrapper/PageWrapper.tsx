@@ -23,7 +23,7 @@ const PageWrapper = forwardRef<HTMLDivElement, IPageWrapperProps>(
 		useLayoutEffect(() => {
 			// @ts-ignore
 			document.getElementsByTagName('TITLE')[0].text = `${title ? `${title} | ` : ''}${
-				import.meta.env.VITE_SITE_NAME
+				'Sukun'
 			}`;
 			// @ts-ignore
 			document

@@ -1,9 +1,13 @@
+import { academicResources } from './academicResources';
+import { operationsResources } from './operationsResources';
 import { financeResources } from './financeResources';
 import { learningResources } from './learningResources';
 import { Resource, field, select, relation } from './resourceTypes';
 export type {Resource, Field, ResourceAction} from './resourceTypes';
 export const resources: Record<string, Resource> = {
     ...learningResources,
+    ...academicResources,
+    ...operationsResources,
     ...financeResources,
     campaigns: {title:'Marketing campaigns', subtitle:'Plan outreach, track spend, and understand where your enquiries come from.', endpoint:'/api/admissions/campaigns/', permission:'admissions', icon:'Campaign', institution:true,
         fields:[field('name','Campaign name','text',true), select('channel','Channel',['SOCIAL','SEARCH','REFERRAL','EVENT','PRINT','OTHER']), select('status','Status',['DRAFT','ACTIVE','PAUSED','COMPLETED']),

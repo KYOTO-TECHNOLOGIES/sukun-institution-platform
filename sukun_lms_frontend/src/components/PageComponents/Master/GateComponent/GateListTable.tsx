@@ -236,7 +236,7 @@ const GateListTableTable: React.FC<GateListTableTableProps> = ({
                     }}
                     actions={[
                         {
-                            icon: FilterListIcon,
+                            icon: () => <FilterListIcon />,
                             tooltip: filterEnabled ? 'Disable Filter' : 'Enable Filter',
                             isFreeAction: true,
                             onClick: () => setFilterEnabled((state) => !state),

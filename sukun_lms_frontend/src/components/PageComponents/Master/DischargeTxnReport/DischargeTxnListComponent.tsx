@@ -294,7 +294,7 @@ const DischargeTxnListComponent = (props) => {
 
                         actions={[
                             {
-                                icon: FilterListIcon,
+                                icon: () => <FilterListIcon />,
                                 tooltip: filterEnabled ? 'Disable Filter' : 'Enable Filter',
                                 isFreeAction: true,
                                 onClick: () => {

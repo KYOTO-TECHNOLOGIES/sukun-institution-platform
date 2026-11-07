@@ -160,7 +160,7 @@ function UserDocuments() {
 							actions={[
 							
 								{
-									icon: EditIcon,
+									icon: () => <EditIcon />,
 									tooltip: 'Edit Document',
 									onClick: (event, rowData) => {
 										setItemToBeEdited(rowData);
@@ -168,7 +168,7 @@ function UserDocuments() {
 									},
 								},
 								{
-									icon: DeleteIcon,
+									icon: () => <DeleteIcon />,
 									tooltip: 'Delete Document',
 									onClick: (event, rowData) => {
 										showConfirmationDialog('Are you sure?', 'You won\'t be able to revert this!', '', 'warning', 'Yes, delete it!')

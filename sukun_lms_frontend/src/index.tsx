@@ -12,7 +12,7 @@ import { AuthContextProvider } from './contexts/authContext';
 import './i18n';
 
 import store from "./store";
-import { LicenceProvider } from './contexts/LicenceContext';
+
 
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -28,13 +28,13 @@ const children = (
 		<Provider store={store}>
 			<Router>
 				<AuthContextProvider>
-					<LicenceProvider>
+
 						<ThemeContextProvider>
 							{/* <React.StrictMode> */}
 							<App />
 							{/* </React.StrictMode> */}
 						</ThemeContextProvider>
-					</LicenceProvider>
+
 				</AuthContextProvider>
 			</Router>
 		</Provider>

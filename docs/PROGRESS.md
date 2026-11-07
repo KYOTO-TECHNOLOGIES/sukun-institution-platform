@@ -52,3 +52,10 @@ Each completed feature is committed and pushed independently. Known limitations 
 - Role-specific dashboards, follow-up and fee alerts, CSV exports and audit history.
 - Per-user permission overrides, password-change revocation, private attachment access, protected historical records, bulk class attendance.
 - Verification: 46 backend tests pass, including new operational/security regressions.
+
+## Role-based application workspace
+- Replaced the template shell with responsive Sukun navigation, universal sign-in, founder dashboard and profile/security.
+- Added real academic, staff, operations and access-management forms with relation selectors and API validation.
+- Repaired deep-link session restoration and redirected outdated management screens to the new workspace.
+- Upgraded vulnerable dependencies; npm audit now reports zero critical/high findings (15 lower-severity findings remain under review).
+- Verification: TypeScript and production build pass; 11 role/mobile browser tests plus all-workspace/form metadata verification pass.

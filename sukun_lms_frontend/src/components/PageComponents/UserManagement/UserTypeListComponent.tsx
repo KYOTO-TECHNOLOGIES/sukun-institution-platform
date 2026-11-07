@@ -129,7 +129,7 @@ const UserTypeListComponent: React.FC<UserTypeListComponentProps> = ({ tableRef,
                     }}
                     actions={[
                         {
-                            icon: FilterListIcon,
+                            icon: () => <FilterListIcon />,
                             tooltip: filterEnabled ? 'Disable Filter' : 'Enable Filter',
                             isFreeAction: true,
                             onClick: () => setFilterEnabled((state) => !state),
