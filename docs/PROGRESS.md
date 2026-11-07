@@ -72,3 +72,8 @@ Each completed feature is committed and pushed independently. Known limitations 
 - Retained issued fee structures within their original class/year and preserved current library inventory on edits.
 - Verification: 49 local backend tests pass. PostgreSQL API tests and production container build/startup passed in CI before this final transaction regression batch; final CI results are linked in the validation record.
 - All 14 local browser tests pass, including all management forms, role access, admissions-to-certificate and payment/refund reconciliation.
+
+## Dependency security and handover
+- Updated Django to 6.0.10, REST framework to 3.18.2 and Pillow to 13.0.0; the resolved Python requirements have no known advisories in pip-audit.
+- Re-ran all 49 backend and 14 browser tests successfully after the security update; PostgreSQL CI also passes.
+- Added the operator guide, verified setup/backup instructions, deployment configuration and an explicit validation/limitations record.

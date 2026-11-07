@@ -19,6 +19,8 @@ python scripts/dev.py web
 
 Open **http://127.0.0.1:5173**. Generated demo credentials for all roles are in **`.local/DEMO_ACCESS.md`**. Setup uses an isolated demo database, preserves an existing demo institution and never resets existing passwords.
 
+For a step-by-step institution setup and daily operations walkthrough, read the [Operator guide](docs/USER_GUIDE.md).
+
 ## Workflows
 
 | Area | Features |
