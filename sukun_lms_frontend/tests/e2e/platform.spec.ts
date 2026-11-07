@@ -160,3 +160,37 @@ test('admission becomes an enrolled student with a printable certificate',async(
     await expect(certificate.getByRole('cell',{name,exact:true})).toBeVisible();
     await certificate.close();
 });
+
+test('accountant can collect, print and refund a payment with reconciled balance',async({page})=>{
+    await login(page,'+919900001005');
+    const bills=await (await page.request.get('/api/finance/student-fees/?limit=500')).json();
+    const bill=bills.results.find((b:any)=>Number(b.balance)>=2);
+    expect(bill).toBeTruthy();
+    const reference='BROWSER-'+Date.now();
+    await page.goto('/workspace/receipts');
+    await page.getByRole('button',{name:'+ Add record',exact:true}).click();
+    await page.getByLabel('Student bill').selectOption(bill.id);
+    await page.getByLabel('Payment amount').fill('1.00');
+    await page.getByLabel('Bank / transaction reference').fill(reference);
+    await page.getByRole('button',{name:'Save record',exact:true}).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    const payment=(await (await page.request.get('/api/finance/fee-payments/?search='+reference)).json()).results[0];
+    expect(payment).toBeTruthy();
+    const afterPayment=await (await page.request.get('/api/finance/student-fees/'+bill.id+'/')).json();
+    expect(Number(afterPayment.balance)).toBe(Number(bill.balance)-1);
+    await page.getByLabel('Search records').fill(payment.receipt_number);
+    const popup=page.waitForEvent('popup');
+    await page.getByRole('row').filter({hasText:payment.receipt_number}).getByRole('button',{name:'Print receipt'}).click();
+    const receipt=await popup;
+    await expect(receipt.getByRole('button',{name:'Print receipt'})).toBeVisible();
+    await receipt.close();
+    await page.goto('/workspace/refunds');
+    await page.getByRole('button',{name:'+ Add record',exact:true}).click();
+    await page.getByLabel('Original receipt').selectOption(payment.id);
+    await page.getByLabel('Refund amount').fill('1.00');
+    await page.getByLabel('Reason',{exact:false}).fill('Browser verification refund');
+    await page.getByRole('button',{name:'Save record',exact:true}).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    const afterRefund=await (await page.request.get('/api/finance/student-fees/'+bill.id+'/')).json();
+    expect(Number(afterRefund.balance)).toBe(Number(bill.balance));
+});

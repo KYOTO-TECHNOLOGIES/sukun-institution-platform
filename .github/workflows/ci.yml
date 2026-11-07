@@ -2,6 +2,9 @@ name: Verify platform
 on:
   push:
   pull_request:
+concurrency:
+  group: platform-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   api:
     runs-on: ubuntu-latest
@@ -56,3 +59,32 @@ jobs:
         working-directory: .
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare isolated container configuration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import secrets
+          text = Path('deploy/production.env.example').read_text()
+          text = text.replace('replace-with-at-least-50-random-characters-generated-for-this-deployment', secrets.token_urlsafe(64))
+          text = text.replace('replace-with-a-long-random-database-password', secrets.token_urlsafe(32))
+          Path('deploy/production.env').write_text(text)
+          PY
+      - run: docker compose --env-file deploy/production.env build
+      - run: docker compose --env-file deploy/production.env up -d db
+      - run: docker compose --env-file deploy/production.env run --rm api python manage.py migrate --noinput
+      - run: docker compose --env-file deploy/production.env run --rm api python manage.py collectstatic --noinput
+      - run: docker compose --env-file deploy/production.env up -d --wait
+      - name: Verify production containers
+        run: |
+          curl --fail --retry 10 --retry-delay 2 http://127.0.0.1:8080/health/
+          curl --fail http://127.0.0.1:8080/ > /dev/null
+          curl --fail -H 'X-Forwarded-Proto: https' http://127.0.0.1:8080/api/auth/csrf/ > /dev/null
+          curl --fail http://127.0.0.1:8080/static/core/receipt.js > /dev/null
+      - if: failure()
+        run: docker compose --env-file deploy/production.env logs --tail=60
+      - if: always()
+        run: docker compose --env-file deploy/production.env down
