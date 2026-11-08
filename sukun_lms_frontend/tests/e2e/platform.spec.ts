@@ -117,6 +117,44 @@ test('mobile navigation works',async({page})=>{
     await page.screenshot({path:'../.local/workspace-mobile.png',fullPage:true});
 });
 
+test('teacher can distinguish an unsubmitted attendance register from saved attendance',async({page})=>{
+    let saved:any=null;
+    await page.route('**/api/attendance/student-attendance/**',async route=>{
+        const request=route.request();
+        if(request.method()==='POST'){
+            saved=request.postDataJSON();
+            await route.fulfill({status:200,json:{saved:saved.records.length}});
+        }else await route.fulfill({status:200,json:saved?saved.records.map((row:any,index:number)=>({...row,id:'attendance-'+index,date:saved.date,division:saved.division})):[]});
+    });
+    await login(page,'+919900001002');
+    await page.goto('/daily-attendance');
+    await page.getByLabel('Class division').selectOption({index:1});
+    await expect(page.getByText('Not submitted',{exact:true})).toBeVisible();
+    const rosterSize=await page.getByRole('group',{name:/Attendance for/}).count();
+    expect(rosterSize).toBeGreaterThan(0);
+    await expect(page.getByText('Not marked',{exact:true})).toHaveCount(rosterSize);
+    await expect(page.getByRole('button',{name:'Submit attendance',exact:true})).toBeDisabled();
+
+    const first=page.getByRole('group',{name:/Attendance for/}).first();
+    await first.getByRole('button',{name:/Absent/}).click();
+    await expect(page.getByText('Unsaved changes',{exact:true})).toBeVisible();
+    await page.getByRole('button',{name:'Mark remaining present',exact:true}).click();
+    await expect(first.getByRole('button',{name:/Absent/})).toHaveAttribute('aria-pressed','true');
+    await expect(page.getByText(rosterSize+' of '+rosterSize+' marked',{exact:true})).toBeVisible();
+    await expect(page.getByText('Ready to submit',{exact:true})).toBeVisible();
+    await page.screenshot({path:'../.local/attendance-ready-to-submit.png',fullPage:true});
+    await page.setViewportSize({width:390,height:844});
+    await expect(first.getByRole('button',{name:/Absent/})).toBeVisible();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+    await page.screenshot({path:'../.local/attendance-mobile.png',fullPage:true});
+
+    await page.getByRole('button',{name:'Submit attendance',exact:true}).click();
+    await expect(page.getByText('Submitted',{exact:true})).toBeVisible();
+    await expect(page.getByText('Attendance submitted for '+rosterSize+' students.')).toBeVisible();
+    expect(saved.records.filter((row:any)=>row.status==='ABSENT')).toHaveLength(1);
+    expect(saved.records.filter((row:any)=>row.status==='PRESENT')).toHaveLength(rosterSize-1);
+});
+
 test('every institution workspace and its create form loads',async({page})=>{
     test.setTimeout(240000);
     await login(page);
