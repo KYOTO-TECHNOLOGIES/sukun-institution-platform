@@ -1,0 +1,94 @@
+.sukun-phone-input {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    min-width: 0;
+    font: inherit;
+    font-weight: 400;
+}
+.sukun-phone-input .sukun-national-number {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+    height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #d8e3dc;
+    border-left: 0;
+    border-radius: 0 8px 8px 0;
+    background: #fff;
+    color: #18382f;
+    font: inherit;
+}
+.sukun-phone-input .sukun-country-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 100px;
+    height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #d8e3dc;
+    border-radius: 8px 0 0 8px;
+    background: #f5f8f5;
+    color: #18382f;
+    font: inherit;
+    cursor: pointer;
+}
+.sukun-phone-input .sukun-country-button:hover { background: #e9f2eb; }
+.sukun-phone-input .sukun-country-chevron { color: #6b7d76; font-size: 11px; }
+.sukun-phone-input .fi { display: inline-block; flex-shrink: 0; }
+.sukun-phone-input input:focus,
+.sukun-phone-input button:focus-visible {
+    outline: 2px solid #a3cdb7;
+    outline-offset: 2px;
+    box-shadow: none;
+    z-index: 1;
+}
+.sukun-phone-input .sukun-country-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 5;
+    width: min(320px, calc(100vw - 80px));
+    padding: 10px 0 0;
+    border: 1px solid #d8e3dc;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 12px 32px #18382f26;
+    color: #18382f;
+    font-size: 13px;
+    text-align: left;
+}
+.sukun-phone-input .sukun-country-popover.above { top: auto; bottom: calc(100% + 8px); }
+.sukun-phone-input .sukun-country-search {
+    width: calc(100% - 20px);
+    margin: 0 10px 10px;
+    padding: 9px;
+    border: 1px solid #d8e3dc;
+    border-radius: 6px;
+    font: inherit;
+}
+.sukun-phone-input .sukun-country-options {
+    max-height: 220px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 0 0 10px 10px;
+}
+.sukun-phone-input .sukun-country-options li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 12px;
+    cursor: pointer;
+}
+.sukun-phone-input .sukun-country-options li:hover,
+.sukun-phone-input .sukun-country-options li:focus,
+.sukun-phone-input .sukun-country-options li[aria-selected=true] { background: #e9f2eb; outline: none; }
+.sukun-phone-input .sukun-calling-code { margin-left: auto; color: #6b7d76; }
+.sukun-phone-input .sukun-country-empty { padding: 8px 12px; }
+.sukun-phone-input .sukun-phone-error { width: 100%; margin-top: 7px; color: #a33630; }

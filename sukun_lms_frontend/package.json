@@ -64,6 +64,7 @@
     "draft-js-export-html": "^1.4.1",
     "fabric": "^7.3.1",
     "file-saver": "^2.0.5",
+    "flag-icons": "7.6.0",
     "formik": "^2.4.5",
     "framer-motion": "^10.18.0",
     "html2canvas": "^1.4.1",

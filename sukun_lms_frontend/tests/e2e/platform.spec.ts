@@ -23,13 +23,45 @@ test('administrator can open dashboard and capture an enquiry',async({page})=>{
     await page.getByRole('button',{name:'+ Add enquiry',exact:true}).click();
     const name='Browser enquiry '+Date.now();
     await page.getByLabel('Student / prospect name').fill(name);
-    await page.getByLabel('Contact phone').fill('+919900009999');
+    await page.getByRole('dialog').getByRole('button',{name:'India: + 91',exact:true}).click();
+    await page.getByPlaceholder('Search country or calling code').fill('United Arab');
+    await page.getByRole('option',{name:/United Arab Emirates/}).click();
+    await page.getByLabel('Contact phone').fill('501234567');
     await page.getByLabel('Enquiry source').fill('Browser verification');
     await page.getByRole('button',{name:'Save record',exact:true}).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await page.getByLabel('Search records').fill(name);
     await expect(page.getByRole('cell',{name,exact:true})).toBeVisible();
+    const row=page.getByRole('row').filter({hasText:name});
+    await expect(row.getByRole('cell',{name:'+971501234567',exact:true})).toBeVisible();
+    await row.getByRole('button',{name:'Edit',exact:true}).click();
+    await expect(page.getByRole('button',{name:'United Arab Emirates: + 971',exact:true})).toBeVisible();
+    await page.getByRole('button',{name:'Cancel',exact:true}).click();
     expect(errors).toEqual([]);
+});
+
+test('optional phone fields save blank without a bare country code',async({page})=>{
+    await login(page);
+    await page.goto('/workspace/queue');
+    await page.getByRole('button',{name:'+ Add record',exact:true}).click();
+    const name='No phone visitor '+Date.now();
+    await page.getByLabel('Visitor name').fill(name);
+    await page.getByRole('dialog').getByRole('button',{name:'India: + 91',exact:true}).click();
+    await page.getByPlaceholder('Search country or calling code').fill('United Arab');
+    await page.getByRole('option',{name:/United Arab Emirates/}).click();
+    const submitted=page.waitForRequest(request=>request.url().includes('/api/operations/queue/')&&request.method()==='POST');
+    await page.getByRole('button',{name:'Save record',exact:true}).click();
+    expect((await submitted).postDataJSON().phone).toBe('');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.getByLabel('Search records').fill(name);
+    await expect(page.getByRole('cell',{name,exact:true})).toBeVisible();
+
+    await page.goto('/workspace/institution-settings');
+    await page.getByRole('button',{name:'Edit',exact:true}).first().click();
+    const phone=page.getByRole('dialog').getByLabel('Phone',{exact:false});
+    await expect(phone).not.toHaveValue(/^\+/);
+    await expect(phone.locator('..').getByRole('button',{name:/\+ 91$/})).toBeVisible();
+    await page.getByRole('button',{name:'Cancel',exact:true}).click();
 });
 
 test('student can learn and submit an assignment',async({page})=>{
@@ -99,6 +131,11 @@ test('every institution workspace and its create form loads',async({page})=>{
                 await expect(page.getByRole('dialog')).toBeVisible();
                 await expect(page.getByRole('dialog').getByText('Loading…',{exact:true})).toHaveCount(0);
                 await expect(page.locator('.workspace-error')).toHaveCount(0);
+                for(const field of resource.fields.filter(f=>f.type==='tel')){
+                    const input=page.getByRole('dialog').getByLabel(field.label,{exact:false});
+                    await expect(input).toHaveAttribute('type','tel');
+                    await expect(input.locator('..').getByRole('button',{name:'India: + 91',exact:true})).toBeVisible();
+                }
                 await page.getByRole('button',{name:'Cancel',exact:true}).click();
             }
             const response=await page.request.fetch((process.env.E2E_API_URL||'http://127.0.0.1:8000')+resource.endpoint,{method:'OPTIONS'});
