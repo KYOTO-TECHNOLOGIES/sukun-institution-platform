@@ -17,6 +17,9 @@ async function login(page:Page,phone='+919900001001'){
 test('administrator can open dashboard and capture an enquiry',async({page})=>{
     const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
     await login(page);
+    await expect(page.getByRole('link',{name:'Sukun home'}).first()).toBeVisible();
+    await expect(page.locator('.sidebar-powered')).toContainText('Powered by');
+    await expect(page.locator('.sidebar-powered img')).toHaveAttribute('alt','Kyoto Technologies');
     await expect(page.getByRole('heading',{name:'A good day starts with a clear picture.'})).toBeVisible();
     await page.screenshot({path:'../.local/dashboard-desktop.png',fullPage:true});
     await page.goto('/workspace/enquiries');
@@ -110,10 +113,12 @@ for(const [role,phone,path,heading] of [
 test('mobile navigation works',async({page})=>{
     await page.setViewportSize({width:390,height:844});
     await login(page);
+    await expect(page.locator('.mobile-brand-link')).toBeVisible();
     await page.getByRole('button',{name:'Open navigation'}).click();
     await expect(page.getByRole('navigation',{name:'Main navigation'})).toBeVisible();
     await page.getByRole('link',{name:'Enquiry pipeline',exact:true}).click();
     await expect(page.getByRole('heading',{name:'Enquiries & admissions pipeline'})).toBeVisible();
+    await page.waitForTimeout(250);
     await page.screenshot({path:'../.local/workspace-mobile.png',fullPage:true});
 });
 

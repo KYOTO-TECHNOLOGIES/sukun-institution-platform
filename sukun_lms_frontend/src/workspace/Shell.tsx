@@ -7,6 +7,7 @@ import AuthContext from '../contexts/authContext';
 import routes from '../routes/contentRoutes';
 import {resources} from './resources';
 import Login from './Login';
+import {PoweredByKyoto,SukunBrand} from '../components/Branding';
 import './workspace.css';
 
 const groups:[string,[string,string,string][]][]=[
@@ -37,17 +38,17 @@ export default function Shell(){
  const visibleGroups=groups.map(([name,links])=>[name,links.filter(l=>can(l[2])&&(!find||l[0].toLowerCase().includes(find.toLowerCase())))] as typeof groups[number]).filter(g=>g[1].length);
  return <div className='sukun-shell'>
   {mobile&&<button className='sidebar-shade' aria-label='Close navigation' onClick={()=>setMobile(false)}/>}
-  <aside className={'sukun-sidebar '+(mobile?'is-open':'')}><Link to='/' className='sukun-wordmark'><span className='sukun-mark'>s</span>sukun<span className='wordmark-dot'>.</span></Link>
+  <aside className={'sukun-sidebar '+(mobile?'is-open':'')}><Link to='/' className='sukun-wordmark' aria-label='Sukun home'><SukunBrand/></Link>
    <div className='sidebar-workspace'><span className='workspace-avatar'>{(userData.full_name||'S').slice(0,1).toUpperCase()}</span><div><strong>Institution workspace</strong><small>{userData.user_type.replace(/_/g,' ').toLowerCase()}</small></div><span>⌄</span></div>
    <input className='sidebar-search' aria-label='Find a page' placeholder='Find a page…' value={find} onChange={e=>setFind(e.target.value)}/>
    <nav aria-label='Main navigation' className='sukun-nav'><NavLink to='/' end className='overview-link'><span>▦</span> Overview</NavLink>{can('portal_read')&&<NavLink to='/portal'><span>◈</span> My learning & family</NavLink>}
     {visibleGroups.map(([name,links])=><details key={name} open={!!find||links.some(l=>location.pathname===l[1])||name==='Growth & admissions'}><summary>{name}</summary>{links.map(([label,path])=><NavLink key={path} to={path}><span className='nav-dot'/> {label}</NavLink>)}</details>)}
-   </nav>
+   </nav><PoweredByKyoto className='sidebar-powered'/>
    <div className='sidebar-bottom'><Link to='/account'><span className='workspace-avatar'>{(userData.first_name||'U').slice(0,1)}</span><div><strong>{userData.full_name||'My account'}</strong><small>Profile & security</small></div></Link><button aria-label='Sign out' title='Sign out' onClick={logout}>↗</button></div>
   </aside>
-  <div className='sukun-main'><header className='sukun-topbar'><button className='mobile-menu' aria-label='Open navigation' onClick={()=>setMobile(true)}>☰</button><div><span className='topbar-breadcrumb'>Workspace <span>/</span></span><strong>{title}</strong></div><div className='topbar-right'><span className='live-dot'/>Your institution, connected<Link to='/account' className='workspace-avatar'>{(userData.first_name||'U').slice(0,1).toUpperCase()}</Link></div></header>
+  <div className='sukun-main'><header className='sukun-topbar'><button className='mobile-menu' aria-label='Open navigation' onClick={()=>setMobile(true)}>☰</button><Link to='/' className='mobile-brand-link' aria-label='Sukun home'><SukunBrand/></Link><div><span className='topbar-breadcrumb'>Workspace <span>/</span></span><strong>{title}</strong></div><div className='topbar-right'><span className='live-dot'/>Your institution, connected<Link to='/account' className='workspace-avatar'>{(userData.first_name||'U').slice(0,1).toUpperCase()}</Link></div></header>
   <main className='sukun-content'><ErrorBoundary key={location.pathname}><Suspense fallback={<div className='workspace'><div className='workspace-empty'>Opening workspace…</div></div>}><Routes>{routes.map(route=><Route key={route.path} path={route.path} element={!route.permissionKey||can(route.permissionKey)?route.element:<div className='workspace'><div className='workspace-empty'><h2>You don’t have access to this page.</h2><p>Your administrator can update your permissions.</p><Link to='/'>Return to overview</Link></div></div>}/>)}
   <Route path='*' element={<div className='workspace'><div className='workspace-empty'><h2>We couldn’t find that page.</h2><Link to='/'>Return to overview</Link></div></div>}/></Routes></Suspense></ErrorBoundary></main>
-  <footer className='sukun-footer'><span>Sukun · A little clarity, every day.</span><span>Institution management & learning</span></footer></div><ReactNotifications/><ToastContainer/>
+  <footer className='sukun-footer'><span>Sukun · A little clarity, every day.</span><PoweredByKyoto/><span>Institution management & learning</span></footer></div><ReactNotifications/><ToastContainer/>
  </div>;
 }
