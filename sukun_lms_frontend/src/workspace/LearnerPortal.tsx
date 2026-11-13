@@ -1,4 +1,6 @@
-import React,{useContext,useState} from 'react';
+import React,{useContext,useEffect,useState} from 'react';
+import {useSearchParams} from 'react-router-dom';
+import RelatedRecordsTable from './RelatedRecordsTable';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import AuthContext from '../contexts/authContext';
 import {authAxios} from '../axiosInstance';
@@ -42,9 +44,10 @@ function CourseRoom({id,onBack,canSubmit}:{id:string;onBack:()=>void;canSubmit:b
 
 export default function LearnerPortal() {
     const {userData}=useContext(AuthContext);
-    const [student,setStudent]=useState('');
+    const [student,setStudent]=useState(()=>new URLSearchParams(window.location.search).get('student')||'');
     const [course,setCourse]=useState('');
-    const [tab,setTab]=useState('learning');
+    const [params,setParams]=useSearchParams();const tab=params.get('tab')||'learning';const setTab=(value:string)=>setParams({tab:value,...(student?{student}: {})});
+    useEffect(()=>{setStudent(params.get('student')||'');},[params.get('student')]);
     const [error,setError]=useState('');
     const [busy,setBusy]=useState(false);
     const cache=useQueryClient();
@@ -55,15 +58,15 @@ export default function LearnerPortal() {
     return <PageWrapper title={canSubmit?'My learning':'Family portal'}><Page container='fluid'><div className='workspace'>
         {course?<CourseRoom id={course} canSubmit={canSubmit} onBack={()=>setCourse('')}/>:<>
         <header className='workspace-heading'><div><div className='workspace-eyebrow'>SUKUN / {canSubmit?'STUDENT':'PARENT'} PORTAL</div><h1>{canSubmit?'Your next chapter starts here.':'A clear view of your child’s journey.'}</h1><p>Learning, progress, and the details that matter — together in one place.</p></div>
-        {data?.students?.length>1&&<select aria-label='Select child' style={{width:230}} value={student||data.student?.id} onChange={e=>setStudent(e.target.value)}>{data.students.map((s:any)=><option key={s.id} value={s.id}>{s.name}</option>)}</select>}</header>
+        {data?.students?.length>1&&<select aria-label='Select child' style={{width:230}} value={student||data.student?.id} onChange={e=>{setStudent(e.target.value);setParams({tab,student:e.target.value});}}>{data.students.map((s:any)=><option key={s.id} value={s.id}>{s.name}</option>)}</select>}</header>
         {query.isLoading?<div className='workspace-empty'>Loading your portal…</div>:query.isError?<div className='workspace-error'>{errorMessage(query.error)}</div>:!data?.student?<div className='workspace-empty'><h2>Your account is ready</h2><p>Ask your institution to link your student profile to see your classes here.</p></div>:<>
         <div className='workspace-stat-grid'><div className='workspace-stat'><small>Student</small><strong style={{fontSize:22}}>{data.student.name}</strong><small>{data.student.division}</small></div><div className='workspace-stat'><small>Active courses</small><strong>{data.courses.length}</strong><small>Keep a steady learning rhythm</small></div><div className='workspace-stat'><small>Lessons completed</small><strong>{data.courses.reduce((n:number,c:any)=>n+c.completed,0)}</strong><small>Every step counts</small></div><div className='workspace-stat'><small>Fee balance</small><strong>{data.fees.reduce((n:number,f:any)=>n+Number(f.balance),0).toLocaleString()}</strong><small>Contact accounts for payment</small></div></div>
         <nav className='workspace-tabs'>{['learning','homework','fees','attendance','results','notices'].map(t=><button key={t} className={tab===t?'active':''} onClick={()=>setTab(t)}>{t[0].toUpperCase()+t.slice(1)}</button>)}</nav>{error&&<div className='workspace-error'>{error}</div>}
         {tab==='learning'&&<div className='workspace-grid'>{data.courses.map((c:any)=><article className='workspace-card' key={c.id}><div className='workspace-eyebrow'>{c.teacher}</div><h2>{c.title}</h2><p>{c.description}</p><progress style={{width:'100%',height:8,accentColor:'#207a58',margin:'22px 0 10px'}} value={c.progress} max={100}/><p>{c.completed} of {c.total} lessons complete · {c.progress}%</p><button className='workspace-primary' style={{marginTop:20}} onClick={()=>setCourse(c.id)}>Open classroom →</button></article>)}</div>}
         {tab==='homework'&&<div className='workspace-list'>{data.tasks.map((t:any)=><article className='workspace-card' key={t.id}><h2>{t.title}</h2><p>{t.description}</p><small>Due {t.due_date} · {t.task_type}</small>{t.submission&&<div className='workspace-notice'><span>{t.submission.status} · {t.submission.score??'Awaiting grade'}<p>{t.submission.feedback}</p></span></div>}{canSubmit&&t.submission?.status!=='EVALUATED'?<form onSubmit={e=>submitHomework(e,t.id)}><textarea name='submission_text' aria-label='Homework answer' required rows={4} defaultValue={t.submission?.text||''} style={{marginTop:15}}/><button disabled={busy} className='workspace-primary' style={{marginTop:12}}>Submit homework</button></form>:<p>{t.submission?.text}</p>}</article>)}</div>}
-        {tab==='fees'&&<div className='workspace-panel workspace-table-scroll'><table><thead><tr><th>Fee</th><th>Due</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>{data.fees.map((f:any)=><tr key={f.id}><td>{f.fee_structure__fee_name}</td><td>{f.due_date||'—'}</td><td>{f.total_amount}</td><td>{f.amount_paid}</td><td>{f.balance}</td><td>{f.status}</td></tr>)}</tbody></table></div>}
-        {tab==='attendance'&&<div className='workspace-panel workspace-table-scroll'><table><thead><tr><th>Date</th><th>Status</th><th>Remarks</th></tr></thead><tbody>{data.attendance.map((a:any)=><tr key={a.date}><td>{a.date}</td><td>{a.status}</td><td>{a.remarks||'—'}</td></tr>)}</tbody></table></div>}
-        {tab==='results'&&<div className='workspace-panel workspace-table-scroll'><table><thead><tr><th>Exam</th><th>Subject</th><th>Marks</th><th>Maximum</th><th>Grade</th></tr></thead><tbody>{data.results.map((r:any,i:number)=><tr key={i}><td>{r.exam__exam_type__name}</td><td>{r.exam__subject__name}</td><td>{r.marks_obtained}</td><td>{r.exam__max_marks}</td><td>{r.grade||'—'}</td></tr>)}</tbody></table></div>}
+        {tab==='fees'&&<section className='workspace-panel'><RelatedRecordsTable namespace={'fees-'+data.student.id} rows={data.fees.map((r:any,i:number)=>({...r,fee:r.fee_structure__fee_name}))} config={{title:'Fee details',subtitle:'Your institution record',endpoint:'',permission:'portal',icon:'Info',fields:[],columns:['fee', 'due_date', 'total_amount', 'amount_paid', 'balance', 'status'],readOnly:true}}/></section>}
+        {tab==='attendance'&&<section className='workspace-panel'><RelatedRecordsTable namespace={'attendance-'+data.student.id} rows={data.attendance.map((r:any,i:number)=>({...r,id:r.id||r.date}))} config={{title:'Attendance details',subtitle:'Your institution record',endpoint:'',permission:'portal',icon:'Info',fields:[],columns:['date', 'status', 'remarks'],readOnly:true}}/></section>}
+        {tab==='results'&&<section className='workspace-panel'><RelatedRecordsTable namespace={'results-'+data.student.id} rows={data.results.map((r:any,i:number)=>({...r,id:r.id||[r.exam__exam_type__name,r.exam__subject__name,i].join('-'),exam:r.exam__exam_type__name,subject:r.exam__subject__name,maximum:r.exam__max_marks}))} config={{title:'Result details',subtitle:'Your institution record',endpoint:'',permission:'portal',icon:'Info',fields:[],columns:['exam', 'subject', 'marks_obtained', 'maximum', 'grade'],readOnly:true}}/></section>}
         {tab==='notices'&&<div className='workspace-list'>{data.notices.map((n:any)=><article className='workspace-card' key={n.id}><small>{new Date(n.sent_at).toLocaleDateString()} · {n.notification_type}</small><h2>{n.title}</h2><p style={{whiteSpace:'pre-wrap'}}>{n.message}</p></article>)}</div>}
         {!(data[tab==='learning'?'courses':tab==='homework'?'tasks':tab]?.length)&&<div className='workspace-empty'><h3>Nothing here yet</h3><p>Your institution’s updates will appear here.</p></div>}
         </>}</>}

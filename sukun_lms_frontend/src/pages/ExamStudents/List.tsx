@@ -1,3 +1,4 @@
+import RelatedRecordsTable from '../../workspace/RelatedRecordsTable';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -107,44 +108,7 @@ const ExamStudentsList = () => {
 						<CardTitle>Exam Students ({filteredStudents.length})</CardTitle>
 					</CardHeader>
 					<CardBody className='px-4 pb-4'>
-						<div className='table-responsive'>
-							<table className='table table-hover align-middle'>
-								<thead className='table-light'>
-									<tr>
-										<th>Reg / Adm #</th>
-										<th>Student Name</th>
-										<th>Class / Group</th>
-										<th>Special Needs</th>
-										<th>Seat Preference</th>
-										<th>Actions</th>
-									</tr>
-								</thead>
-								<tbody>
-									{filteredStudents.length > 0 ? (
-										filteredStudents.map((st: any) => (
-											<tr key={st.id}>
-												<td><code>{st.registration_number}</code></td>
-												<td className='fw-bold text-dark'>
-													{st.full_name}
-													{st.is_specially_abled && <span className='ms-2 fs-6' title='Special Needs'>♿</span>}
-												</td>
-												<td>
-													<span className='badge bg-secondary'>{st.class_name || st.class_group || 'General'}</span>
-												</td>
-												<td>
-													{st.is_specially_abled ? (
-														<span className='badge bg-warning-subtle text-warning border border-warning-subtle'>
-															♿ Special Needs: {st.special_requirements || 'Front Row'}
-														</span>
-													) : (
-														<span className='badge bg-light text-muted'>Standard</span>
-													)}
-												</td>
-												<td>
-													<span className='badge bg-light text-dark border'>{st.preferred_seat_type || 'STANDARD'}</span>
-												</td>
-												<td>
-													<div className='d-flex gap-2'>
+						<div className='workspace'><RelatedRecordsTable namespace='ExamStudents' rows={filteredStudents} config={{title:'Exam students',subtitle:'Exam seating record',endpoint:'',permission:'',icon:'Info',fields:[],columns:['registration_number', 'full_name', 'class_name', 'is_specially_abled', 'preferred_seat_type'],readOnly:true}} emptyMessage='No exam students found. Use Sync LMS Students in Sessions to import records.' actions={(st:any)=>(<div className='d-flex gap-2'>
 														<Button
 															color='light'
 															size='sm'
@@ -174,21 +138,8 @@ const ExamStudentsList = () => {
 															}}>
 															Delete
 														</Button>
-													</div>
-												</td>
-											</tr>
-										))
-									) : (
-										<tr>
-											<td colSpan={6} className='text-center text-muted py-5'>
-												No exam students found. Use "Sync LMS Students" in Sessions page to import records.
-											</td>
-										</tr>
-									)}
-								</tbody>
-							</table>
-						</div>
-					</CardBody>
+													</div>)}/></div>
+</CardBody>
 				</Card>
 
 				{/* Edit Student Modal */}

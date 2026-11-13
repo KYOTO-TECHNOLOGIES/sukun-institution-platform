@@ -7,6 +7,7 @@ import secrets
 import shutil
 import subprocess
 import sys
+import time
 
 ROOT=Path(__file__).resolve().parent.parent
 BACKEND=ROOT/'institution_management_application/sukun_lms'
@@ -37,16 +38,24 @@ def environment():
             'DEMO_PASSWORD':data['password'],'ALLOWED_HOSTS':'localhost,127.0.0.1,testserver',
             'CSRF_TRUSTED_ORIGINS':'http://127.0.0.1:5173,http://localhost:5173',
             'JWT_COOKIE_SECURE':'False','CSRF_COOKIE_SECURE':'False','SESSION_COOKIE_SECURE':'False',
-            'SECURE_SSL_REDIRECT':'False'}
+            'SECURE_SSL_REDIRECT':'False', 'REDIS_URL':os.environ.get('REDIS_URL',''),
+            'WEBSOCKET_ALLOWED_ORIGINS':'http://127.0.0.1:5173,http://localhost:5173,http://127.0.0.1:8000,http://localhost:8000'}
 
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command',choices=['setup','seed','api','web','test'])
+    parser.add_argument('command',choices=['setup','seed','migrate','api','web','dev','test','check'])
     args=parser.parse_args()
     env=environment()
     def backend(*command): subprocess.run([str(PYTHON),'manage.py',*command],cwd=BACKEND,env=env,check=True)
     npm=shutil.which('npm.cmd' if os.name=='nt' else 'npm')
+    def service(command, cwd):
+        # On Unix replace the wrapper, so the combined runner can stop the real service.
+        if os.name != 'nt':
+            os.chdir(cwd)
+            os.execvpe(command[0], command, env)
+        subprocess.run(command,cwd=cwd,env=env,check=True)
+
     if args.command=='setup':
         if not PYTHON.exists(): subprocess.run([sys.executable,'-m','venv',str(VENV)],check=True)
         subprocess.run([str(PYTHON),'-m','pip','install','-r','requirements.txt'],cwd=BACKEND,check=True)
@@ -56,10 +65,42 @@ def main():
         print('Ready. Demo credentials: .local/DEMO_ACCESS.md')
     elif args.command=='seed':
         backend('migrate','--noinput');backend('seed_demo')
-    elif args.command=='api': backend('runserver','127.0.0.1:8000','--noreload')
+    elif args.command=='migrate': backend('migrate','--noinput')
+    elif args.command=='check':
+        backend('check'); backend('makemigrations','--check','--dry-run')
+    elif args.command=='api':
+        service([str(PYTHON),'-m','daphne','-b','127.0.0.1','-p','8000',
+                        '--access-log','-','sukun_lms.asgi:application'],BACKEND)
+    elif args.command=='dev':
+        if not PYTHON.exists() or not npm:
+            raise SystemExit('Run python scripts/dev.py setup first.')
+        backend('migrate','--noinput')
+        processes=[]
+        try:
+            for service_name in ['api','web']:
+                processes.append(subprocess.Popen([sys.executable,str(Path(__file__).resolve()),service_name],cwd=ROOT,env=env,start_new_session=os.name!='nt'))
+            print('Frontend: http://127.0.0.1:5173 | Daphne API: http://127.0.0.1:8000 | Ctrl+C to stop',flush=True)
+            while all(process.poll() is None for process in processes):
+                time.sleep(0.5)
+            failed=next((process.returncode for process in processes if process.poll() is not None),0)
+            if failed: raise SystemExit(failed)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            for process in processes:
+                if process.poll() is None:
+                    if os.name=='nt':
+                        subprocess.run(['taskkill','/PID',str(process.pid),'/T','/F'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+                    else:
+                        import signal
+                        os.killpg(process.pid, signal.SIGTERM)
+            for process in processes:
+                try: process.wait(timeout=5)
+                except subprocess.TimeoutExpired: process.kill()
+
     elif args.command=='web':
         if not npm: raise SystemExit('Node.js is required.')
-        subprocess.run([npm,'run','dev','--','--host','127.0.0.1','--port','5173','--strictPort'],cwd=FRONTEND,env=env,check=True)
+        service([npm,'run','dev','--','--host','127.0.0.1','--port','5173','--strictPort'],FRONTEND)
     elif args.command=='test': backend('test','--noinput')
 
 

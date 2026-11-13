@@ -8,18 +8,24 @@ Prerequisites: Python 3.13, Node.js 22.
 
 ```sh
 python scripts/dev.py setup
-python scripts/dev.py api
+python scripts/dev.py dev
 ```
 
-In a second terminal:
-
-```sh
-python scripts/dev.py web
-```
+The combined command migrates the local database and starts Daphne and Vite together. Ctrl+C stops both. To run them separately, use `python scripts/dev.py api` and `python scripts/dev.py web` in two terminals. Apply new migrations without reseeding with `python scripts/dev.py migrate`; check configuration with `python scripts/dev.py check`.
 
 Open **http://127.0.0.1:5173**. Generated demo credentials for all roles are in **`.local/DEMO_ACCESS.md`**. Setup uses an isolated demo database, preserves an existing demo institution and never resets existing passwords.
 
 For a step-by-step institution setup and daily operations walkthrough, read the [Operator guide](docs/USER_GUIDE.md).
+
+Click a record to explore its details. The **Quick view / Full page** control above each table remembers your preference. Quick view supports Escape to close and **Open full page**; dedicated record URLs can be bookmarked, and returning to the table keeps its search and page. Student history, learner records, exam students and subject schedules also support detail browsing. Use **Ctrl/Cmd + K** to find a workspace page, or the help icon for a short workspace guide.
+
+## Live notifications
+
+Use the bell on any page for a quick preview, or open **Notifications** for the full inbox. Unread state belongs to each user and syncs between tabs. Filter by unread or module, mark one or all read, and switch off important popups or mute selected modules. Routine record changes stay in the inbox; addressed notices, approval changes, published assignments, feedback, and family attendance alerts can show a popup. Your own actions do not send you a duplicate notification.
+
+Django Channels authenticates the browser's HttpOnly access cookie and places each connection in its own institution/user room. Records are persisted before live delivery; reconnecting clients recover through the HTTP inbox without replaying old popups. Recipients are selected using module permissions, teacher ownership, notice recipients, and active student/guardian links. All application modules participate; seeds, failed requests, no-op saves, and routine reads stay quiet.
+
+Local development uses one Daphne process with an in-memory channel layer. Production uses Redis, configured in Compose, and Nginx forwards `/ws/notifications/`. See [notification operations](docs/DEPLOYMENT.md#live-notification-operations) for configuration and failure recovery.
 
 ## Workflows
 
@@ -43,7 +49,7 @@ Institution boundaries are enforced by the API, including related objects. Sensi
 - `institution_management_application/sukun_lms/`: Django API, migrations, regression tests and demo seed.
 - `sukun_lms_frontend/`: React workspace, role portals and Playwright browser tests.
 - `scripts/`: isolated local setup and SQLite backup helpers.
-- `deploy/`, `compose.yaml`: Nginx/Gunicorn/PostgreSQL deployment configuration.
+- `deploy/`, `compose.yaml`: Nginx/Daphne/PostgreSQL/Redis deployment configuration.
 - `docs/`: operational instructions and implementation progress.
 
 The original queue project remains untouched and is excluded from this repository. Its templates informed the initial application; the new workspace uses the Sukun visual design.

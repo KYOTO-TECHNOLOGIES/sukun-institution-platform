@@ -1,3 +1,4 @@
+import RelatedRecordsTable from '../../workspace/RelatedRecordsTable';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -131,45 +132,7 @@ const SchedulesList = () => {
 						<CardTitle>Configured Subject Schedules</CardTitle>
 					</CardHeader>
 					<CardBody className='px-4 pb-4'>
-						<div className='table-responsive'>
-							<table className='table table-hover align-middle'>
-								<thead className='table-light'>
-									<tr>
-										<th>Subject</th>
-										<th>Code</th>
-										<th>Session</th>
-										<th>Timing</th>
-										<th>Participating Classes</th>
-										<th>Room Cap</th>
-										<th>Actions</th>
-									</tr>
-								</thead>
-								<tbody>
-									{schedules.length > 0 ? (
-										schedules.map((schedule: any) => (
-											<tr key={schedule.id}>
-												<td>
-													<div className='fw-bold text-primary'>{schedule.subject_name}</div>
-												</td>
-												<td><code>{schedule.subject_code || 'N/A'}</code></td>
-												<td>
-													<span className={`badge ${schedule.session === 'MORNING' ? 'bg-primary' : schedule.session === 'AFTERNOON' ? 'bg-info text-dark' : 'bg-dark'}`}>
-														{schedule.session}
-													</span>
-												</td>
-												<td>
-													{schedule.start_time} - {schedule.end_time} ({schedule.duration_minutes}m)
-												</td>
-												<td>
-													{Array.isArray(schedule.participating_class_groups)
-														? schedule.participating_class_groups.map((g: string) => (
-																<span key={g} className='badge bg-secondary me-1'>{g}</span>
-														  ))
-														: schedule.participating_class_groups}
-												</td>
-												<td>{schedule.max_students_per_room} / hall</td>
-												<td>
-													<div className='d-flex gap-2'>
+						<div className='workspace'><RelatedRecordsTable namespace='Schedules' rows={schedules.map((schedule:any)=>({...schedule,exam_date:days.find((day:any)=>day.id===schedule.exam_day)?.date}))} config={{title:'Subject schedules',subtitle:'Exam seating record',endpoint:'',permission:'',icon:'Info',fields:[],columns:['subject_name', 'subject_code', 'exam_date', 'session', 'start_time', 'end_time', 'participating_class_groups', 'max_students_per_room'],readOnly:true}} emptyMessage='No subject schedules configured yet. Add your first subject schedule to get started.' actions={(schedule:any)=>(<div className='d-flex gap-2'>
 														<Button
 															color='light'
 															size='sm'
@@ -203,21 +166,8 @@ const SchedulesList = () => {
 															}}>
 															Delete
 														</Button>
-													</div>
-												</td>
-											</tr>
-										))
-									) : (
-										<tr>
-											<td colSpan={7} className='text-center text-muted py-5'>
-												No subject schedules configured yet. Click "New Subject Schedule" to add one.
-											</td>
-										</tr>
-									)}
-								</tbody>
-							</table>
-						</div>
-					</CardBody>
+													</div>)}/></div>
+</CardBody>
 				</Card>
 
 				{/* Save Schedule Modal */}

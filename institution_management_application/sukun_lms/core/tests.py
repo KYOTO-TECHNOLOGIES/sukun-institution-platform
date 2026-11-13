@@ -17,6 +17,17 @@ class TenantSecurityTests(APITestCase):
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(self.client.get(f'/api/academics/classes/{self.other_cls.pk}/').status_code, 404)
 
+    def test_audit_details_are_read_only_and_institution_scoped(self):
+        from .models import AuditEvent
+        own = AuditEvent.objects.create(institution=self.one, actor=self.user, action='POST', path='/api/academics/classes/', status_code=201)
+        other = AuditEvent.objects.create(institution=self.two, action='POST', path='/api/academics/classes/', status_code=201)
+        url = f'/api/audit/{own.pk}/'
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.assertEqual(self.client.get(f'/api/audit/{other.pk}/').status_code, 404)
+        self.assertEqual(self.client.patch(url, {'action': 'DELETE'}).status_code, 405)
+        self.user.user_type = 'STUDENT'; self.user.save()
+        self.assertEqual(self.client.get(url).status_code, 403)
+
     def test_cross_institution_create_and_reassignment_rejected(self):
         response = self.client.post('/api/academics/divisions/', {'class_obj': str(self.other_cls.pk), 'name': 'B', 'capacity': 20})
         self.assertEqual(response.status_code, 400)

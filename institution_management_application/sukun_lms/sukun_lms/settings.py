@@ -34,6 +34,7 @@ CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 default_sqlite_url = f"sqlite:///{(BASE_DIR / 'db.sqlite3').as_posix()}"
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -59,6 +60,7 @@ INSTALLED_APPS = [
     'admissions',
     'learning',
     'operations',
+    'notifications.apps.NotificationsConfig',
 ]
 
 MIDDLEWARE = [
@@ -69,6 +71,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'core.audit.AuditMiddleware',
+    'notifications.middleware.NotificationEventsMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -91,6 +94,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'sukun_lms.wsgi.application'
+ASGI_APPLICATION = 'sukun_lms.asgi.application'
 
 DATABASES = {
     'default': env.db('DATABASE_URL', default=default_sqlite_url),
@@ -193,7 +197,21 @@ if env.bool('TRUST_PROXY_SSL_HEADER', default=False):
 SECURE_REFERRER_POLICY = 'same-origin'
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
-DATABASES['default']['CONN_MAX_AGE'] = env.int('DB_CONN_MAX_AGE', default=60)
+DATABASES['default']['CONN_MAX_AGE'] = env.int('DB_CONN_MAX_AGE', default=0)
 LOGGING = {'version':1,'disable_existing_loggers':False,
            'handlers':{'console':{'class':'logging.StreamHandler'}},
            'root':{'handlers':['console'],'level':env('LOG_LEVEL',default='INFO')}}
+
+# In-memory rooms are for the single local Daphne process only.
+# Redis shares live events across production workers/containers.
+REDIS_URL = env('REDIS_URL', default='')
+if not DEBUG and not REDIS_URL:
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured('Set REDIS_URL for production notification rooms.')
+CHANNEL_LAYERS = {'default': (
+    {'BACKEND': 'channels_redis.core.RedisChannelLayer', 'CONFIG': {'hosts': [REDIS_URL]}}
+    if REDIS_URL else {'BACKEND': 'channels.layers.InMemoryChannelLayer'}
+)}
+WEBSOCKET_ALLOWED_ORIGINS = env.list('WEBSOCKET_ALLOWED_ORIGINS', default=CSRF_TRUSTED_ORIGINS + (
+    ['http://127.0.0.1:5173', 'http://localhost:5173', 'http://127.0.0.1:8000', 'http://localhost:8000'] if DEBUG else []
+))

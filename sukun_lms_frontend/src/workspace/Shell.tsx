@@ -9,6 +9,10 @@ import {resources} from './resources';
 import Login from './Login';
 import {PoweredByKyoto,SukunBrand} from '../components/Branding';
 import './workspace.css';
+import './workspace-refinements.css';
+import {Glyph} from './WorkspaceUI';
+import {NotificationBell} from './Notifications';
+import WorkspaceNavigator, {WorkspaceGuide} from './WorkspaceNavigator';
 
 const groups:[string,[string,string,string][]][]=[
  ['Growth & admissions',[['Marketing campaigns','/workspace/campaigns','admissions_read'],['Enquiry pipeline','/workspace/enquiries','admissions_read'],['Follow-up desk','/workspace/follow-ups','admissions_read'],['Applications','/workspace/applications','admissions_read']]],
@@ -29,26 +33,29 @@ class ErrorBoundary extends React.Component<{children:React.ReactNode},{failed:b
 
 export default function Shell(){
  const {userData,permissions,setLogOut}=useContext(AuthContext);const location=useLocation();const cache=useQueryClient();const [mobile,setMobile]=useState(false);const [find,setFind]=useState('');
+ const [navigator,setNavigator]=useState(false);const [guide,setGuide]=useState(false);
+ useEffect(()=>{const handle=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();setNavigator(open=>open?false:!document.querySelector('[role=dialog][aria-modal=true]'));}};window.addEventListener('keydown',handle);return()=>window.removeEventListener('keydown',handle);},[]);
  const signedIn=!!userData?.id;const can=(key:string)=>(permissions as any)?.[key]===true;
  useEffect(()=>{setMobile(false);document.documentElement.setAttribute('data-bs-theme','light');document.documentElement.removeAttribute('theme');},[location.pathname]);
  const logout=()=>{cache.clear();setLogOut();};
  if(location.pathname==='/login')return <Login/>;
  if(!signedIn)return <Navigate to='/login' replace/>;
- const title=location.pathname==='/'?'Overview':location.pathname==='/portal'?'My learning':location.pathname==='/account'?'My account':resources[location.pathname.split('/').pop()||'']?.title||groups.flatMap(g=>g[1]).find(l=>l[1]===location.pathname)?.[0]||'Institution workspace';
+ const title=location.pathname==='/'?'Overview':location.pathname==='/portal'?'My learning':location.pathname==='/account'?'My account':location.pathname==='/notifications'?'Notifications':(location.pathname.startsWith('/workspace/')?resources[location.pathname.split('/')[2]||'']?.title:undefined)||groups.flatMap(g=>g[1]).find(l=>l[1]===location.pathname)?.[0]||'Institution workspace';
  const visibleGroups=groups.map(([name,links])=>[name,links.filter(l=>can(l[2])&&(!find||l[0].toLowerCase().includes(find.toLowerCase())))] as typeof groups[number]).filter(g=>g[1].length);
- return <div className='sukun-shell'>
+ const navigationLinks=[{title:'Overview',path:'/',group:'Workspace'},...(can('portal_read')?[{title:'My learning & family',path:'/portal',group:'Workspace'}]:[]),...groups.flatMap(([group,links])=>links.filter(l=>can(l[2])).map(([title,path])=>({title,path,group}))),{title:'Notifications',path:'/notifications',group:'Workspace'},{title:'My account',path:'/account',group:'Profile & security'}];
+ return <div className='sukun-shell'><a href='#main-content' className='skip-content'>Skip to content</a>
   {mobile&&<button className='sidebar-shade' aria-label='Close navigation' onClick={()=>setMobile(false)}/>}
   <aside className={'sukun-sidebar '+(mobile?'is-open':'')}><Link to='/' className='sukun-wordmark' aria-label='Sukun home'><SukunBrand/></Link>
    <div className='sidebar-workspace'><span className='workspace-avatar'>{(userData.full_name||'S').slice(0,1).toUpperCase()}</span><div><strong>Institution workspace</strong><small>{userData.user_type.replace(/_/g,' ').toLowerCase()}</small></div><span>⌄</span></div>
    <input className='sidebar-search' aria-label='Find a page' placeholder='Find a page…' value={find} onChange={e=>setFind(e.target.value)}/>
-   <nav aria-label='Main navigation' className='sukun-nav'><NavLink to='/' end className='overview-link'><span>▦</span> Overview</NavLink>{can('portal_read')&&<NavLink to='/portal'><span>◈</span> My learning & family</NavLink>}
-    {visibleGroups.map(([name,links])=><details key={name} open={!!find||links.some(l=>location.pathname===l[1])||name==='Growth & admissions'}><summary>{name}</summary>{links.map(([label,path])=><NavLink key={path} to={path}><span className='nav-dot'/> {label}</NavLink>)}</details>)}
-   </nav><PoweredByKyoto className='sidebar-powered'/>
+   <nav aria-label='Main navigation' className='sukun-nav'><NavLink to='/' end className='overview-link'><Glyph name='grid'/> Overview</NavLink><NavLink to='/notifications'><Glyph name='bell'/> Notifications</NavLink>{can('portal_read')&&<NavLink to='/portal'><Glyph name='file'/> My learning & family</NavLink>}
+    {visibleGroups.map(([name,links])=><details key={name} open={!!find||links.some(l=>location.pathname===l[1]||location.pathname.startsWith(l[1]+'/'))||name==='Growth & admissions'}><summary>{name}</summary>{links.map(([label,path])=><NavLink key={path} to={path}><span className='nav-dot'/> {label}</NavLink>)}</details>)}
+   {find&&!visibleGroups.length&&<p className='nav-empty'>No pages match {find}. Try a different name.</p>}</nav><PoweredByKyoto className='sidebar-powered'/>
    <div className='sidebar-bottom'><Link to='/account'><span className='workspace-avatar'>{(userData.first_name||'U').slice(0,1)}</span><div><strong>{userData.full_name||'My account'}</strong><small>Profile & security</small></div></Link><button aria-label='Sign out' title='Sign out' onClick={logout}>↗</button></div>
   </aside>
-  <div className='sukun-main'><header className='sukun-topbar'><button className='mobile-menu' aria-label='Open navigation' onClick={()=>setMobile(true)}>☰</button><Link to='/' className='mobile-brand-link' aria-label='Sukun home'><SukunBrand/></Link><div><span className='topbar-breadcrumb'>Workspace <span>/</span></span><strong>{title}</strong></div><div className='topbar-right'><span className='live-dot'/>Your institution, connected<Link to='/account' className='workspace-avatar'>{(userData.first_name||'U').slice(0,1).toUpperCase()}</Link></div></header>
-  <main className='sukun-content'><ErrorBoundary key={location.pathname}><Suspense fallback={<div className='workspace'><div className='workspace-empty'>Opening workspace…</div></div>}><Routes>{routes.map(route=><Route key={route.path} path={route.path} element={!route.permissionKey||can(route.permissionKey)?route.element:<div className='workspace'><div className='workspace-empty'><h2>You don’t have access to this page.</h2><p>Your administrator can update your permissions.</p><Link to='/'>Return to overview</Link></div></div>}/>)}
+  <div className='sukun-main'><header className='sukun-topbar'><button className='mobile-menu' aria-label='Open navigation' onClick={()=>setMobile(true)}><Glyph name='menu'/></button><Link to='/' className='mobile-brand-link' aria-label='Sukun home'><SukunBrand/></Link><div><span className='topbar-breadcrumb'>Workspace <span>/</span></span><strong>{title}</strong></div><div className='topbar-right'><NotificationBell/><button className='topbar-command' onClick={()=>setNavigator(true)} aria-label='Jump to page'><Glyph name='search' size={16}/><span>Jump to page</span><kbd>Ctrl K</kbd></button><button className='topbar-guide' onClick={()=>setGuide(true)} aria-label='Workspace guide' title='Workspace guide'><Glyph name='help' size={19}/></button><Link to='/account' className='workspace-avatar'>{(userData.first_name||'U').slice(0,1).toUpperCase()}</Link></div></header>
+  <main id='main-content' tabIndex={-1} className='sukun-content'><ErrorBoundary key={location.pathname}><Suspense fallback={<div className='workspace'><div className='workspace-empty'>Opening workspace…</div></div>}><Routes>{routes.map(route=><Route key={route.path} path={route.path} element={!route.permissionKey||can(route.permissionKey)?route.element:<div className='workspace'><div className='workspace-empty'><h2>You don’t have access to this page.</h2><p>Your administrator can update your permissions.</p><Link to='/'>Return to overview</Link></div></div>}/>)}
   <Route path='*' element={<div className='workspace'><div className='workspace-empty'><h2>We couldn’t find that page.</h2><Link to='/'>Return to overview</Link></div></div>}/></Routes></Suspense></ErrorBoundary></main>
-  <footer className='sukun-footer'><span>Sukun · A little clarity, every day.</span><PoweredByKyoto/><span>Institution management & learning</span></footer></div><ReactNotifications/><ToastContainer/>
+  <footer className='sukun-footer'><span>Sukun · A little clarity, every day.</span><PoweredByKyoto/><span>Institution management & learning</span></footer></div><ReactNotifications/><ToastContainer position='bottom-right' limit={3} newestOnTop pauseOnFocusLoss pauseOnHover/><div className='workspace shell-dialogs'>{navigator&&<WorkspaceNavigator links={navigationLinks} onClose={()=>setNavigator(false)}/>} {guide&&<WorkspaceGuide onClose={()=>setGuide(false)}/>}</div>
  </div>;
 }

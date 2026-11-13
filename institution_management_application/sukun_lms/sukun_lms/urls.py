@@ -8,11 +8,13 @@ from core.health import health
 from core.media import ProtectedMediaView
 
 urlpatterns = [
+    path('api/notifications/', include('notifications.urls')),
     path('health/', health),
     path('media/<path:filename>', ProtectedMediaView.as_view()),
     path('api/reports/overview/', InstitutionDashboard.as_view()),
     path('api/reports/export/<str:kind>/', ReportExport.as_view()),
     path('api/audit/', AuditViewSet.as_view({'get':'list'})),
+    path('api/audit/<int:pk>/', AuditViewSet.as_view({'get':'retrieve'})),
     path('api/operations/', include('operations.urls')),
     path('api/portal/', include('learning.portal_urls')),
     path('api/learning/', include('learning.urls')),

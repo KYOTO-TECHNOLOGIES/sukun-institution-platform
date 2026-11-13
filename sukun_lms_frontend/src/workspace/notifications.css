@@ -1,0 +1,91 @@
+.notification-bell{position:relative;border:1px solid #e0e7e0;background:#fff;color:#4e6357;border-radius:50%;width:38px;height:38px;display:grid;place-items:center;flex-shrink:0;cursor:pointer}
+.notification-bell:hover{background:#eff6ed;border-color:#bfd1bc}
+.notification-badge{position:absolute;right:-5px;top:-5px;min-width:18px;height:18px;padding:0 4px;border:2px solid #fff;background:#28774e;color:white;font-size:10px;font-weight:700;border-radius:20px;display:grid;place-items:center}
+.notification-connection{display:inline-flex;align-items:center;gap:7px;color:#8b7553;font-size:12px;white-space:nowrap}
+.notification-connection i{width:7px;height:7px;border-radius:50%;background:#ba9c61}
+.notification-connection.is-live{color:#547960}
+.notification-connection.is-live i{background:#44855a;box-shadow:0 0 0 3px #edf5ec}
+.notification-page-actions{display:flex;gap:20px;align-items:center}
+.notification-page-actions button{display:flex;align-items:center;gap:7px}
+.notification-heading-count{vertical-align:middle;font-size:14px;font-weight:600;padding:5px 10px;background:#e9f0e4;color:#47724b;border-radius:30px}
+.notification-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:24px;align-items:start}
+.notification-inbox{padding:0!important;overflow:hidden}
+.notification-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:20px 22px;border-bottom:1px solid #edf0e8}
+.notification-toolbar select{max-width:190px;font-size:12px;padding:8px 10px;min-height:35px}
+.notification-filters{display:flex;gap:4px;padding:3px;background:#f3f4ef;border-radius:9px}
+.workspace .notification-filters button{border:0;background:transparent;box-shadow:none;padding:7px 13px;color:#728075;font-size:12px;border-radius:6px;white-space:nowrap}
+.workspace .notification-filters button.is-selected{background:#fff;color:#2d5740;box-shadow:0 1px 4px #1538200d}
+.notification-filters span{font-size:10px;background:#eaf1e7;border-radius:20px;padding:2px 5px;margin-left:4px}
+.workspace .notification-mark-all{margin-left:auto;display:inline-flex;gap:5px;align-items:center;border:0;background:none;color:#527459;font-size:12px;padding:5px 0;box-shadow:none}
+.notification-list{margin:0;padding:0;list-style:none}
+.notification-list>li{display:flex;align-items:flex-start;gap:14px;padding:22px;border-bottom:1px solid #edf0e8;transition:background .15s}
+.notification-list>li:last-child{border-bottom:0}
+.notification-list>li.is-unread{background:#f7faf3}
+.notification-kind{display:grid;place-items:center;width:35px;height:35px;flex-shrink:0;border:1px solid #e5e9df;border-radius:11px;color:#82907c;background:#fff}
+.notification-kind.needs-attention{color:#7c8a46;background:#f0f2df;border-color:#e5e9cc}
+.notification-content{min-width:0;flex:1}
+.notification-meta{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:5px;font-size:10px;letter-spacing:.04em;color:#87917c}
+.notification-meta>span{text-transform:uppercase;font-weight:650}
+.notification-meta time{white-space:nowrap;letter-spacing:0}
+.workspace .notification-content h3{font-size:14px;line-height:1.5;font-weight:600;display:flex;align-items:center;gap:8px;margin:0 0 5px;color:#324d3b;overflow-wrap:anywhere}
+.workspace .notification-content p{font-size:12px;line-height:1.75;color:#798474;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.notification-unread-dot{display:inline-block;width:6px;height:6px;background:#477b52;border-radius:50%;flex-shrink:0}
+.workspace .notification-open{display:flex;align-items:center;gap:7px;border:0;background:none;padding:0;margin-top:10px;color:#507150;box-shadow:none;font-size:11px;font-weight:600}
+.workspace .notification-read{display:grid;place-items:center;border:1px solid transparent;background:transparent;box-shadow:none;color:#89977f;padding:5px;margin-top:18px;border-radius:7px}
+.workspace .notification-read:hover{border-color:#dbe5d2;background:#fff;color:#2e7246}
+.notification-empty{text-align:center;padding:60px 25px;color:#7e8977}
+.notification-empty>span{display:grid;place-items:center;width:60px;height:60px;border-radius:20px;background:#f0f4e9;color:#8c9a67;margin:0 auto 20px}
+.workspace .notification-empty h3{font-size:17px;color:#486044;margin:0 0 9px}
+.workspace .notification-empty p{font-size:13px;max-width:330px;margin:0 auto;line-height:1.7}
+.notification-preferences{padding:25px!important}
+.workspace .notification-preferences h2{font-size:21px;margin:8px 0 12px}
+.workspace .notification-preferences>p{font-size:12px;line-height:1.8;color:#89917e}
+.notification-toggle{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:22px 0;border-bottom:1px solid #e9ecdf;margin:0 0 18px}
+.notification-toggle strong{font-size:12px;font-weight:600;color:#4b6144}
+.notification-toggle small{display:block;font-size:10px;color:#929987;line-height:1.6;margin-top:4px}
+.workspace .notification-toggle input[type=checkbox]{width:32px;height:19px;appearance:none;border:0;border-radius:20px;background:#c9d0c3;position:relative;flex-shrink:0;margin:0;cursor:pointer;padding:0}
+.notification-toggle input:before{content:'';position:absolute;left:3px;top:3px;width:13px;height:13px;border-radius:50%;background:#fff;transition:transform .15s}
+.notification-toggle input:checked{background:#547c4b}
+.notification-toggle input:checked:before{transform:translateX(13px)}
+.notification-preferences summary{font-size:12px;color:#607354;cursor:pointer}
+.notification-module-options{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+.notification-module-options label{display:flex;align-items:center;gap:9px;font-size:11px;color:#708264}
+.workspace .notification-module-options input[type=checkbox]{width:14px;height:14px;accent-color:#52774b;min-height:0;margin:0}
+.notification-tip{display:flex;gap:10px;margin-top:24px;padding:14px 0 0;border-top:1px solid #e9ecdf;color:#9ba58d}
+.notification-tip svg{flex-shrink:0;margin-top:3px}
+.workspace .notification-tip p{font-size:11px;line-height:1.8;margin:0}
+.notification-pagination{display:flex;align-items:center;justify-content:flex-end;gap:13px;padding:18px;border-top:1px solid #edf0e8;font-size:11px;color:#88927e}
+.notification-pagination>span:first-child{margin-right:auto}
+.notification-dialog{max-width:640px!important}
+.notification-dialog-status{display:flex;justify-content:space-between;align-items:center;padding:0 24px 16px;color:#8e9784;font-size:12px}
+.notification-dialog .notification-toolbar{padding:14px 24px;border-top:1px solid #edf0e8}
+.notification-dialog .notification-list>li{padding:18px 24px}
+.notification-dialog-footer{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:20px 24px;border-top:1px solid #edf0e8;background:#fafbf7}
+.notification-dialog-footer a{display:flex;align-items:center;gap:7px;color:#53734b;font-size:12px;font-weight:600}
+.notification-dialog-footer>span{font-size:10px;color:#99a18f}
+.notification-toast strong{font-size:14px;font-weight:600;color:#35513c;line-height:1.5}
+.notification-toast p{font-size:12px;margin:6px 0;color:#7b8974}
+.notification-toast button{border:0;background:#edf3e8;color:#497049;border-radius:6px;padding:6px 12px;font-size:12px;margin-top:4px}
+.Toastify__toast{border:1px solid #e2e8dc;border-radius:12px!important;box-shadow:0 6px 25px #213e2012!important}
+.Toastify__toast-theme--light.Toastify__toast--info{--toastify-color-info:#648a50}
+.notification-page button:focus-visible,.notification-bell:focus-visible,.notification-dialog button:focus-visible{outline:3px solid #9cbf89;outline-offset:3px}
+@media(max-width:1100px){.notification-layout{grid-template-columns:minmax(0,1fr)}
+.notification-preferences{max-width:none}
+.notification-preferences .notification-module-options{display:grid;grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.notification-page-actions{justify-content:space-between;width:100%;gap:10px}
+.notification-toolbar{padding:15px;gap:10px}
+.notification-toolbar select{max-width:100%;width:100%;order:3}
+.notification-list>li,.notification-dialog .notification-list>li{padding:17px 14px;gap:10px}
+.notification-kind{width:29px;height:29px;border-radius:9px}
+.notification-meta{font-size:9px;align-items:flex-start}
+.notification-content h3{font-size:13px}
+.notification-dialog-status,.notification-dialog .notification-toolbar{padding-left:15px;padding-right:15px}
+.notification-dialog-footer{padding:16px;align-items:flex-start;flex-direction:column;gap:6px}
+.notification-preferences .notification-module-options{grid-template-columns:repeat(2,1fr)}
+.notification-bell{width:34px;height:34px}
+.notification-pagination{gap:8px;padding:14px}
+.notification-pagination>span:first-child{display:none}
+.notification-page .workspace-heading{gap:18px}}
+
+.notification-portal{padding:0}
+.notification-portal .workspace-modal-backdrop{z-index:1300}

@@ -6,6 +6,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './styles/styles.scss';
 import App from './App/App';
+import { NotificationProvider } from './workspace/Notifications';
 import reportWebVitals from './reportWebVitals';
 import { ThemeContextProvider } from './contexts/themeContext';
 import { AuthContextProvider } from './contexts/authContext';
@@ -31,7 +32,7 @@ const children = (
 
 						<ThemeContextProvider>
 							{/* <React.StrictMode> */}
-							<App />
+							<NotificationProvider><App /></NotificationProvider>
 							{/* </React.StrictMode> */}
 						</ThemeContextProvider>
 

@@ -5,6 +5,7 @@ import { resources } from '../workspace/resources';
 const LearnerPortal = lazy(() => import('../workspace/LearnerPortal'));
 const ResourcePage = lazy(() => import('../workspace/ResourcePage')); 
 
+import NotificationsPage from '../workspace/Notifications';
 const Dashboard = lazy(() => import('../workspace/Dashboard'));
 const AccountPage = lazy(() => import('../workspace/AccountPage'));
 const StudentDetail = lazy(() => import('../workspace/StudentProfile'));
@@ -23,9 +24,10 @@ const AttendanceList = lazy(() => import('../pages/Attendance/List'));
 const MalpracticeList = lazy(() => import('../pages/Malpractice/List'));
 
 const contentRoutes = [
+    {path:'/notifications',element:<NotificationsPage />,exact:true,permissionKey:'dashboard_read'},
     {path:'/account',element:<AccountPage />,exact:true,permissionKey:'dashboard_read'},
     {path:'/portal',element:<LearnerPortal />,exact:true,permissionKey:'portal_read'},
-    ...Object.entries(resources).map(([key, config]) => ({path:'/workspace/'+key, element:<ResourcePage />, exact:true, permissionKey:config.permission+'_read'})),
+    ...Object.entries(resources).flatMap(([key, config]) => ['', '/:recordId'].map(suffix => ({path:'/workspace/'+key+suffix, element:<ResourcePage key={key} />, exact:true, permissionKey:config.permission+'_read'}))),
 	{
 		path: allRoutesObject.dashboard.path,
 		element: <Dashboard />,

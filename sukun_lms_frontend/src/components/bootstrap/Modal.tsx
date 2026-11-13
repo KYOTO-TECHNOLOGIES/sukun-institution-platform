@@ -233,7 +233,7 @@ const Modal: FC<IModalProps> = ({
 							id={id}
 							tabIndex={-1}
 							aria-labelledby={titleId}
-							aria-hidden='true'
+							aria-modal='true'
 							data-bs-backdrop={isStaticBackdrop ? 'static' : null}
 							data-bs-keyboard={isStaticBackdrop ? 'false' : null}
 							// eslint-disable-next-line react/jsx-props-no-spreading

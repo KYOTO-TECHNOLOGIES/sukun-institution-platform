@@ -1,111 +1,109 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useDispatch } from 'react-redux';
+import React, { useContext, useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import AuthContext from '../contexts/authContext';
 import { authAxios } from '../axiosInstance';
-import { setHeaderTitle, setBreadcrumbs } from '../store/uiSlice';
-import PageWrapper from '../layout/PageWrapper/PageWrapper';
-import Page from '../layout/Page/Page';
-import { allRecords, errorMessage } from './api';
-import { resources, Field, ResourceAction } from './resources';
-import CountryPhoneInput from '../components/CountryPhoneInput';
+import { errorMessage } from './api';
+import { resources, ResourceAction } from './resources';
+import { FormField, initial } from './ResourceForm';
+import RecordDetails, { humanize, recordTitle, RecordValue } from './RecordDetails';
+import { Glyph, Skeleton, WorkspaceDialog } from './WorkspaceUI';
 import './workspace.css';
 
-const label = (key: string) => key.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-const initial = (fields: Field[], row: any = {}) => Object.fromEntries(fields.map(f=>[f.key, (f.type==='datetime-local' && row[f.key] ? new Date(new Date(row[f.key]).getTime()-new Date(row[f.key]).getTimezoneOffset()*60000).toISOString().slice(0,16) : row[f.key]) ?? f.default ?? (f.type==='multirelation'?[]:f.type==='checkbox'?false:f.type==='datetime-local'?new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16):f.type==='date'?new Date().toLocaleDateString('en-CA'):f.type==='number'?0:f.type==='select'?(Array.isArray(f.options?.[0])?f.options?.[0][0]:f.options?.[0])||'':'')]));
-
-function FormField({field, value, onChange}: {field:Field; value:any; onChange:(v:any)=>void}) {
-    const options = useQuery({queryKey:['options',field.endpoint],queryFn:()=>allRecords(field.endpoint!),enabled:!!field.endpoint});
-    const id = 'field-' + field.key;
-    if(field.type==='permissions') {
-        const modules=['academics','students','staff','attendance','examinations','exam_seating','tasks','communications','learning','admissions','finance','library','expenses','payroll','assets','transport','hostel','support','frontdesk','pastoral'];
-        return <fieldset className='workspace-field wide'><legend style={{fontSize:14}}>{field.label}</legend><small>{field.help}</small><div className='workspace-table-scroll'><table><thead><tr><th>Module</th><th>Read</th><th>Write</th></tr></thead><tbody>{modules.map(m=><tr key={m}><td>{label(m)}</td>{['read','write'].map(a=>{const k=m+'_'+a;return <td key={k}><select aria-label={label(m)+' '+a+' permission'} value={value?.[k]===undefined?'inherit':value[k]?'allow':'deny'} onChange={e=>{const next={...value};if(e.target.value==='inherit')delete next[k];else next[k]=e.target.value==='allow';onChange(next);}}><option value='inherit'>Inherit role</option><option value='allow'>Allow</option><option value='deny'>Deny</option></select></td>;})}</tr>)}</tbody></table></div></fieldset>;
-    }
-    return <div className={'workspace-field '+(field.type==='textarea'?'wide':'')}>
-        <label htmlFor={id}>{field.label}{field.required?' *':''}</label>
-        {['relation','multirelation'].includes(field.type||'') ? <select multiple={field.type==='multirelation'} id={id} required={field.required} value={value} onChange={e=>onChange(field.type==='multirelation'?Array.from(e.target.selectedOptions).map(o=>o.value):e.target.value)}>
-            {field.type!=='multirelation'&&<option value=''>{options.isLoading?'Loading…':'Select '+field.label.toLowerCase()}</option>}
-            {(options.data||[]).map((item:any)=><option key={item.id} value={item.id}>{item[field.optionLabel||'name']||item.full_name||item.title||item.id}{field.key==='division'&&item.class_name?' · '+item.class_name:''}</option>)}
-        </select> : field.type==='select' ? <select id={id} value={value} onChange={e=>onChange(e.target.value)}>
-            {(field.options||[]).map(o=><option key={Array.isArray(o)?o[0]:o} value={Array.isArray(o)?o[0]:o}>{Array.isArray(o)?o[1]:label(o)}</option>)}
-        </select> : field.type==='textarea' ? <textarea id={id} rows={3} value={value} required={field.required} onChange={e=>onChange(e.target.value)}/>
-        : field.type==='tel' ? <CountryPhoneInput id={id} value={value} required={field.required} onChange={onChange}/>
-        : <input id={id} type={field.type||'text'} value={field.type==='checkbox'?undefined:value} checked={field.type==='checkbox'?!!value:undefined}
-            required={field.required} min={field.min} step={field.step} autoComplete={field.type==='password'?'new-password':undefined}
-            onChange={e=>onChange(field.type==='checkbox'?e.target.checked:e.target.value)}/>}
-        {field.help&&<small>{field.help}</small>}{options.isError&&<small className='workspace-error'>{errorMessage(options.error)}</small>}
-    </div>;
-}
-
+type OpenMode = 'modal' | 'page';
+const pageSize = 15;
 export default function ResourcePage() {
-    const location=useLocation();
-    const name = location.pathname.split('/').pop()!;
-    const studentFilter=new URLSearchParams(location.search).get('student');
-    const config = resources[name];
-    const dispatch = useDispatch();
-    const {userData,permissions} = useContext(AuthContext);
-    const cache = useQueryClient();
-    const [page,setPage] = useState(0);
-    const [search,setSearch] = useState('');
-    const [query,setQuery] = useState('');
-    const [editing,setEditing] = useState<any>(undefined);
-    const [action,setAction] = useState<ResourceAction|null>(null);
-    const [values,setValues] = useState<any>({});
-    const [busy,setBusy] = useState(false);
-    const [error,setError] = useState('');
-    const [notice,setNotice] = useState('');
-    const [removing,setRemoving] = useState<any>(null);
-    const hasLinks=!!config?.actions?.some(a=>a.link);
-    const canWrite = !config?.readOnly && !!(permissions as any)?.[config?.permission+'_write'];
-    useEffect(()=>{setPage(0);setSearch('');setQuery('');setEditing(undefined);setError('');setNotice('');},[name]);
-    useEffect(()=>{if(config){dispatch(setHeaderTitle({name:config.title,isEditable:false}));dispatch(setBreadcrumbs([{title:'Workspace',to:'/'},{title:config.title}]));}},[config,dispatch]);
-    useEffect(()=>{const timer=setTimeout(()=>{setQuery(search);setPage(0);},300);return()=>clearTimeout(timer);},[search]);
-    const list = useQuery({queryKey:['workspace',name,page,query,studentFilter],queryFn:()=>authAxios.get(config.endpoint,{params:{limit:15,offset:page*15,search:query,...(studentFilter?{student:studentFilter}:{})}}).then(r=>r.data),enabled:!!config});
-    const rows = list.data?.results||list.data||[];
-    const count = list.data?.count??rows.length;
-    const fields = action?.fields||config?.fields||[];
-    const open = (row:any, selected:ResourceAction|null = null) => {setError('');setAction(selected);setEditing(row);setValues(initial(selected?.fields||config.fields,selected?{}:row||(studentFilter?{student:studentFilter}:{})));};
-    const save = async(e:React.FormEvent) => {
-        e.preventDefault();setBusy(true);setError('');
+    const location = useLocation(); const navigate = useNavigate(); const { recordId } = useParams();
+    const [params, setParams] = useSearchParams();
+    const name = location.pathname.split('/')[2]; const config = resources[name];
+    const listPath = '/workspace/' + name;
+    const detailId = recordId || params.get('record');
+    const page = Math.max(0, Math.floor(Number(params.get('page')) || 0));
+    const query = params.get('q') || ''; const studentFilter = params.get('student');
+    const { userData, permissions } = useContext(AuthContext); const cache = useQueryClient();
+    const [search, setSearch] = useState(query);
+    const [mode, setMode] = useState<OpenMode>(() => { try { return localStorage.getItem('sukun.record-view') === 'page' ? 'page' : 'modal'; } catch { return 'modal'; } });
+    const [editing, setEditing] = useState<any>(undefined); const [action, setAction] = useState<ResourceAction | null>(null);
+    const [values, setValues] = useState<any>({}); const [busy, setBusy] = useState(false);
+    const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [removing, setRemoving] = useState<any>(null);
+    const canWrite = !config?.readOnly && !!(permissions as any)?.[config?.permission + '_write'];
+    const fields = action?.fields || config?.fields || [];
+    const listParams = new URLSearchParams(params); listParams.delete('record');
+    const suffix = listParams.toString() ? '?' + listParams.toString() : '';
+    const listUrl = listPath + suffix;
+    const detailUrl = (id: any) => listPath + '/' + encodeURIComponent(id) + suffix;
+    useEffect(() => { setEditing(undefined); setRemoving(null); setError(''); setNotice(''); }, [name]);
+    useEffect(() => { setSearch(query); }, [name, query]);
+    useEffect(() => {
+        if (search === query) return;
+        const timer = setTimeout(() => setParams(current => { const next = new URLSearchParams(current); search ? next.set('q', search) : next.delete('q'); next.delete('page'); return next; }, { replace: true }), 300);
+        return () => clearTimeout(timer);
+    }, [search, query, setParams]);
+    useEffect(() => { document.title = (recordId ? 'Record details · ' : '') + (config?.title || 'Workspace') + ' | Sukun'; }, [config, recordId]);
+    const list = useQuery({ queryKey: ['workspace', name, page, query, studentFilter], queryFn: () => authAxios.get(config.endpoint, { params: { limit: pageSize, offset: page * pageSize, search: query, ...(studentFilter ? { student: studentFilter } : {}) } }).then(r => r.data), enabled: !!config && !recordId, placeholderData: keepPreviousData });
+    const detail = useQuery({ queryKey: ['workspace-detail', name, detailId], queryFn: () => authAxios.get(config.endpoint + encodeURIComponent(detailId!) + '/').then(r => r.data), enabled: !!config && !!detailId, retry: false });
+    const rows: any[] = list.data?.results || (Array.isArray(list.data) ? list.data : []);
+    const count = list.data?.count ?? rows.length;
+    useEffect(() => { if (!list.isPlaceholderData && list.isSuccess && page > 0 && !rows.length) setParams(current => { const next = new URLSearchParams(current); next.set('page', String(Math.max(0, Math.ceil(count / pageSize) - 1))); return next; }, { replace: true }); }, [list.isPlaceholderData, list.isSuccess, rows.length, page, count, setParams]);
+    const selectMode = (next: OpenMode) => { setMode(next); try { localStorage.setItem('sukun.record-view', next); } catch { /* Keep preference in memory when storage is unavailable. */ } };
+    const openDetail = (row: any, chosen = mode) => { if (chosen === 'page') navigate(detailUrl(row.id)); else { const next = new URLSearchParams(params); next.set('record', row.id); setParams(next); } };
+    const closeDetail = () => navigate(listUrl, { replace: true });
+    const open = (row: any, selected: ResourceAction | null = null) => { setError(''); setAction(selected); setEditing(row); setValues(initial(selected?.fields || config.fields, selected ? {} : row || (studentFilter ? { student: studentFilter } : {}))); };
+    const invalidate = async () => { await Promise.all([cache.invalidateQueries({ queryKey: ['workspace'] }), cache.invalidateQueries({ queryKey: ['workspace-detail'] }), cache.invalidateQueries({ queryKey: ['options'] }), cache.invalidateQueries({ queryKey: ['institution-dashboard'] })]); };
+    const save = async (event: React.FormEvent) => {
+        event.preventDefault(); setBusy(true); setError('');
         try {
-            const payload:any = {...values};
-            for(const f of fields) {
-                if(payload[f.key]==='' && ['relation','date','datetime-local'].includes(f.type||'')) payload[f.key]=null;
-                if(editing?.id&&f.type==='password'&&!payload[f.key]) delete payload[f.key];
-                if(f.type==='datetime-local'&&payload[f.key]) payload[f.key]=new Date(payload[f.key]).toISOString();
+            const payload: any = { ...values };
+            for (const field of fields) {
+                if (payload[field.key] === '' && ['relation', 'date', 'datetime-local'].includes(field.type || '')) payload[field.key] = null;
+                if (editing?.id && field.type === 'password' && !payload[field.key]) delete payload[field.key];
+                if (field.type === 'datetime-local' && payload[field.key]) payload[field.key] = new Date(payload[field.key]).toISOString();
             }
-            if(action) await authAxios.post(config.endpoint+editing.id+'/'+action.endpoint,{...action.payload,...payload});
+            if (action) await authAxios.post(config.endpoint + editing.id + '/' + action.endpoint, { ...action.payload, ...payload });
             else {
-                if(config.institution) payload.institution=userData.institution;
-                if(editing?.id) await authAxios.patch(config.endpoint+editing.id+'/',payload);
-                else await authAxios.post(config.endpoint,payload);
+                if (config.institution) payload.institution = userData.institution;
+                if (editing?.id) await authAxios.patch(config.endpoint + editing.id + '/', payload);
+                else await authAxios.post(config.endpoint, payload);
             }
-            setEditing(undefined);setNotice(action?action.label+' completed.':'Changes saved.');
-            await cache.invalidateQueries({queryKey:['workspace']});
-            await cache.invalidateQueries({queryKey:['options']});
-        } catch(err){setError(errorMessage(err));} finally{setBusy(false);}
+            setNotice(action ? action.label + ' completed.' : 'Changes saved.'); await invalidate(); setEditing(undefined);
+        } catch (err) { setError(errorMessage(err)); } finally { setBusy(false); }
     };
-    const remove = async()=>{setBusy(true);setError('');try{await authAxios.delete(config.endpoint+removing.id+'/');setRemoving(null);setNotice('Record removed.');await cache.invalidateQueries({queryKey:['workspace']});}catch(err){setError(errorMessage(err));}finally{setBusy(false);}};
-    if(!config)return <p>Workspace not found.</p>;
-    return <PageWrapper title={config.title}><Page container='fluid'><div className='workspace'>
-        <header className='workspace-heading'><div><div className='workspace-eyebrow'>SUKUN / INSTITUTION WORKSPACE</div><h1>{config.title}</h1><p>{config.subtitle}</p></div>
-            {canWrite&&!config.noCreate&&<button className='workspace-primary' onClick={()=>open(null)}>+ Add {name==='enquiries'?'enquiry':'record'}</button>}</header>
-        {notice&&<div className='workspace-notice' role='status'>{notice}<button onClick={()=>setNotice('')} aria-label='Dismiss notification'>×</button></div>}
-        <section className='workspace-panel'><div className='workspace-toolbar'><input aria-label='Search records' placeholder='Search records…' value={search} onChange={e=>setSearch(e.target.value)}/><span>{count} records</span><button onClick={()=>list.refetch()}>Refresh</button></div>
-        {list.isError?<div className='workspace-error' role='alert'>{errorMessage(list.error)} <button onClick={()=>list.refetch()}>Try again</button></div>:list.isLoading?<div className='workspace-empty'>Loading records…</div>:<>
-        <div className='workspace-table-scroll'><table><thead><tr>{config.columns.map(c=><th key={c}>{label(c)}</th>)}{(canWrite||hasLinks)&&<th>Actions</th>}</tr></thead>
-        <tbody>{rows.map((row:any)=><tr key={row.id}>{config.columns.map(c=><td key={c}>{typeof row[c]==='boolean'?(row[c]?'Yes':'No'):c==='status'||c==='stage'?<span className={'workspace-badge '+String(row[c]).toLowerCase()}>{label(row[c]||'Unknown')}</span>:String(row[c]??'—')}</td>)}
-        {(canWrite||hasLinks)&&<td className='workspace-row-actions'>{canWrite&&!config.noEdit&&row.status!=='ENROLLED'&&<button onClick={()=>open(row)}>Edit</button>}
-            {(config.actions||[]).filter(a=>(canWrite||a.link)&&(!a.visible||a.visible(row,userData.user_type))).map(a=><button key={a.label} onClick={()=>a.link?window.open(a.link(row),'_blank','noopener,noreferrer'):open(row,a)}>{a.label}</button>)}
-            {canWrite&&!config.noDelete&&<button className='workspace-danger' onClick={()=>{setError('');setRemoving(row);}}>Delete</button>}</td>}</tr>)}</tbody></table></div>
-        {!rows.length&&<div className='workspace-empty'><h3>{query?'No matching records':'Ready for your first record'}</h3><p>{query?'Try another name or keyword.':config.subtitle}</p>{canWrite&&!config.noCreate&&!query&&<button onClick={()=>open(null)}>Add your first record</button>}</div>}
-        <footer className='workspace-pagination'><span>{count?Math.min(page*15+1,count):0}–{Math.min((page+1)*15,count)} of {count}</span><button disabled={!page} onClick={()=>setPage(p=>p-1)}>Previous</button><button disabled={(page+1)*15>=count} onClick={()=>setPage(p=>p+1)}>Next</button></footer></>}
-        </section>
-        {editing!==undefined&&<div className='workspace-modal-backdrop'><section className='workspace-modal' role='dialog' aria-modal='true' aria-labelledby='workspace-dialog-title'>
-            <header><h2 id='workspace-dialog-title'>{action?.label||(editing?'Edit record':'New record')}</h2><button aria-label='Close dialog' disabled={busy} onClick={()=>setEditing(undefined)}>×</button></header>
-            <form onSubmit={save}><div className='workspace-form'>{fields.map(f=><FormField key={f.key} field={f} value={values[f.key]} onChange={v=>setValues((current:any)=>({...current,[f.key]:v}))}/>)}</div>
-            {error&&<div className='workspace-error' role='alert'>{error}</div>}<footer><button type='button' disabled={busy} onClick={()=>setEditing(undefined)}>Cancel</button><button className='workspace-primary' disabled={busy}>{busy?'Saving…':action?.label||'Save record'}</button></footer></form></section></div>}
-        {removing&&<div className='workspace-modal-backdrop'><section className='workspace-modal small' role='dialog' aria-modal='true' aria-label='Confirm deletion'><h2>Delete this record?</h2><p>Linked records may also be affected. This cannot be undone.</p>{error&&<p className='workspace-error'>{error}</p>}<footer><button disabled={busy} onClick={()=>setRemoving(null)}>Cancel</button><button className='workspace-danger' disabled={busy} onClick={remove}>{busy?'Deleting…':'Delete record'}</button></footer></section></div>}
-    </div></Page></PageWrapper>;
+    const remove = async () => {
+        setBusy(true); setError('');
+        try { await authAxios.delete(config.endpoint + removing.id + '/'); setRemoving(null); if (detailId) closeDetail(); setNotice('Record removed.'); await invalidate(); }
+        catch (err) { setError(errorMessage(err)); } finally { setBusy(false); }
+    };
+    const rowActions = (row: any, inDetail = false) => <>
+        {canWrite && !config.noEdit && row.status !== 'ENROLLED' && <button onClick={() => open(row)} className={inDetail ? 'workspace-primary' : ''}>{inDetail && <Glyph name='edit' size={15} />}{inDetail ? 'Edit record' : 'Edit'}</button>}
+        {(config.actions || []).filter(a => (canWrite || a.link) && (!a.visible || a.visible(row, userData.user_type))).map(a => a.link ? <a key={a.label} className='workspace-button' href={a.link(row)} target={a.link(row).startsWith('/api/') ? '_blank' : undefined} rel='noreferrer'>{a.label}<Glyph name='expand' size={13} /></a> : <button key={a.label} onClick={() => open(row, a)}>{a.label}</button>)}
+        {canWrite && !config.noDelete && <button className='workspace-danger' onClick={() => { setError(''); setRemoving(row); }}>Delete</button>}
+    </>;
+    const detailContent = <>{detail.isLoading ? <Skeleton rows={6} /> : detail.isError ? <div className='workspace-empty'><Glyph name='file' size={30} /><h3>We couldn’t open this record</h3><p>{(detail.error as any)?.response?.status === 404 ? 'It may have been removed, or it is no longer available to your account.' : errorMessage(detail.error)}</p><button onClick={() => detail.refetch()}>Try again</button></div> : detail.data && <RecordDetails config={config} row={detail.data} actions={rowActions(detail.data, true)} />}</>;
+    if (!config) return <div className='workspace-empty'>Workspace not found.</div>;
+    return <div className='workspace resource-workspace'>
+        {recordId ? <>
+            <div className='detail-page-nav'><Link to={listUrl}><Glyph name='back' size={16} />Back to {config.title.toLowerCase()}</Link><span>Record details</span><button onClick={() => navigate(listUrl + (suffix ? '&' : '?') + 'record=' + encodeURIComponent(recordId))}><Glyph name='panel' size={16} />Open as modal</button></div>
+            {notice && <div className='workspace-notice' role='status'><span><Glyph name='check' />{notice}</span><button onClick={() => setNotice('')} aria-label='Dismiss notification'><Glyph name='close' size={16} /></button></div>}
+            <section className='workspace-panel detail-page'>{detailContent}</section>
+        </> : <>
+            <header className='workspace-heading'><div><div className='workspace-eyebrow'><span className='eyebrow-dot' />INSTITUTION WORKSPACE</div><h1>{config.title}<span className='heading-count' aria-hidden='true'>{list.isLoading ? '…' : count}</span></h1><p>{config.subtitle}</p></div>{canWrite && !config.noCreate && <button className='workspace-primary' onClick={() => open(null)}>+ Add {name === 'enquiries' ? 'enquiry' : 'record'}</button>}</header>
+            {notice && <div className='workspace-notice' role='status'><span><Glyph name='check' />{notice}</span><button onClick={() => setNotice('')} aria-label='Dismiss notification'><Glyph name='close' size={16} /></button></div>}
+            <section className='workspace-panel resource-panel' aria-busy={list.isFetching}>
+                <div className='resource-panel-heading'><div><Glyph name='grid' /><h2>All records</h2>{studentFilter && <span className='workspace-badge'>Student history</span>}</div><span><span className='live-dot' />{list.isFetching ? 'Updating…' : 'Up to date'}</span></div>
+                <div className='workspace-toolbar resource-toolbar'><div className='record-search'><Glyph name='search' /><input aria-label='Search records' placeholder={'Search ' + config.title.toLowerCase() + '…'} value={search} onChange={e => setSearch(e.target.value)} />{search && <button aria-label='Clear search' onClick={() => setSearch('')}><Glyph name='close' size={15} /></button>}</div><div className='view-preference'><span>Open records in</span><div className='segmented-control' role='group' aria-label='Open records in'><button aria-pressed={mode === 'modal'} onClick={() => selectMode('modal')}><Glyph name='panel' size={15} />Quick view</button><button aria-pressed={mode === 'page'} onClick={() => selectMode('page')}><Glyph name='expand' size={15} />Full page</button></div></div><button className='icon-button' aria-label='Refresh records' title='Refresh records' disabled={list.isFetching} onClick={() => list.refetch()}><Glyph name='refresh' className={list.isFetching ? 'is-spinning' : ''} /></button></div>
+                {list.isError ? <div className='workspace-error' role='alert'>{errorMessage(list.error)} <button onClick={() => list.refetch()}>Try again</button></div> : list.isLoading ? <Skeleton /> : <>
+                    <div className='workspace-table-scroll'><table className='resource-table'><thead><tr>{config.columns.map(column => <th key={column} scope='col'>{humanize(column)}</th>)}<th scope='col' className='actions-heading'>Actions</th></tr></thead><tbody>{rows.map(row => <tr key={row.id} className='record-row' onClick={event => { if ((event.target as HTMLElement).closest('a,button,input,select') || window.getSelection()?.toString()) return; openDetail(row); }}>
+                        {config.columns.map((column, index) => <td key={column}>{index === 0 ? <Link className='record-primary-link' to={detailUrl(row.id)} onClick={event => { if (!event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); openDetail(row); } }}><RecordValue value={row[column]} fieldKey={column} field={config.fields.find(f => f.key === column)} /><Glyph name='chevron' size={14} /></Link> : <RecordValue value={row[column]} fieldKey={column} field={config.fields.find(f => f.key === column)} />}</td>)}
+                        <td><div className='workspace-row-actions'><button className='row-view-button' aria-label={'View details for ' + recordTitle(row, config)} title='Quick view' onClick={() => openDetail(row, 'modal')}><Glyph name='panel' size={15} />View</button>{rowActions(row)}</div></td>
+                    </tr>)}</tbody></table></div>
+                    {!rows.length && <div className='workspace-empty'><span className='empty-illustration'><Glyph name={query ? 'search' : 'file'} size={30} /></span><h3>{query ? 'No matching records' : 'A clear space for your next step'}</h3><p>{query ? 'Try a different name or keyword, or clear your search to see all records.' : config.subtitle}</p>{query ? <button onClick={() => setSearch('')}>Clear search</button> : canWrite && !config.noCreate && <button className='workspace-primary' onClick={() => open(null)}>Add your first record</button>}</div>}
+                    <footer className='workspace-pagination'><span>{count ? page * pageSize + 1 : 0}–{Math.min((page + 1) * pageSize, count)} of {count} records<span className='table-hint'>Click a row to explore its details</span></span><button disabled={!page || list.isPlaceholderData} onClick={() => setParams(current => { const next = new URLSearchParams(current); next.set('page', String(page - 1)); return next; })}><Glyph name='back' size={15} />Previous</button><span className='page-indicator'>{page + 1} / {Math.max(1, Math.ceil(count / pageSize))}</span><button disabled={(page + 1) * pageSize >= count || list.isPlaceholderData} onClick={() => setParams(current => { const next = new URLSearchParams(current); next.set('page', String(page + 1)); return next; })}>Next<Glyph name='arrow' size={15} /></button></footer>
+                </>}
+            </section>
+            <div className='workspace-context-note'><Glyph name='help' size={15} /><span>Choose how you explore. Quick view keeps your place; full page gives each record room.</span></div>
+        </>}
+        {detailId && !recordId && editing === undefined && !removing && <WorkspaceDialog title='Record details' className='record-modal' onClose={closeDetail} tools={<Link className='workspace-button' to={detailUrl(detailId)}><Glyph name='expand' size={15} />Open full page</Link>}>{notice && <div className='workspace-notice' role='status'>{notice}</div>}{detailContent}<footer><span className='dialog-hint'>Press Esc to close</span><button onClick={closeDetail}>Done</button></footer></WorkspaceDialog>}
+        {editing !== undefined && <WorkspaceDialog title={action?.label || (editing ? 'Edit record' : 'New record')} busy={busy} onClose={() => setEditing(undefined)}><form onSubmit={save}><div className='form-intro'><p>{action ? 'Review the information below to continue.' : 'Keep the details complete and easy for your team to find.'}</p><span>* Required fields</span></div><div className='workspace-form'>{fields.map(field => <FormField key={field.key} field={field} value={values[field.key]} onChange={value => setValues((current: any) => ({ ...current, [field.key]: value }))} />)}</div>{error && <div className='workspace-error' role='alert'>{error}</div>}<footer><button type='button' disabled={busy} onClick={() => setEditing(undefined)}>Cancel</button><button className='workspace-primary' disabled={busy}>{busy ? 'Saving…' : action?.label || 'Save record'}</button></footer></form></WorkspaceDialog>}
+        {removing && <WorkspaceDialog title='Delete this record?' className='small' busy={busy} onClose={() => setRemoving(null)}><p><strong>{recordTitle(removing, config)}</strong> will be removed. Linked records may also be affected. This cannot be undone.</p>{error && <div className='workspace-error' role='alert'>{error}</div>}<footer><button disabled={busy} onClick={() => setRemoving(null)}>Cancel</button><button className='workspace-danger' disabled={busy} onClick={remove}>{busy ? 'Deleting…' : 'Delete record'}</button></footer></WorkspaceDialog>}
+    </div>;
 }

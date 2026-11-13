@@ -8,4 +8,4 @@ COPY --chown=sukun:sukun . .
 RUN mkdir -p media staticfiles && chown -R sukun:sukun media staticfiles
 USER sukun
 EXPOSE 8000
-CMD ["gunicorn", "sukun_lms.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--access-logfile", "-"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "sukun_lms.asgi:application"]

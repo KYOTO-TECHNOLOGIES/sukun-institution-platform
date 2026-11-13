@@ -18,7 +18,7 @@ export const resources: Record<string, Resource> = {
         columns:['name','channel','status','budget','spent','start_date']},
     enquiries: {title:'Enquiries & admissions pipeline', subtitle:'Give every prospective family a clear next step.',endpoint:'/api/admissions/leads/', permission:'admissions',icon:'People',institution:true,
         fields:[field('full_name','Student / prospect name','text',true),field('phone','Contact phone','tel',true),field('email','Email','email'),field('guardian_name','Guardian name'),
-            field('source','Enquiry source'), relation('campaign','Campaign','/api/admissions/campaigns/','name'),
+            field('source','Enquiry source','text',true), relation('campaign','Campaign','/api/admissions/campaigns/','name'),
             relation('interested_class','Interested class','/api/academics/classes/','name'),
             select('stage','Stage',['NEW','CONTACTED','QUALIFIED','VISIT_SCHEDULED','APPLICATION','LOST']),field('next_follow_up','Next follow-up','datetime-local'),
             field('notes','Conversation notes','textarea'),field('lost_reason','Reason if lost')],

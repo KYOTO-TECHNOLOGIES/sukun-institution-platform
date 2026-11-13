@@ -135,6 +135,7 @@ test('teacher can distinguish an unsubmitted attendance register from saved atte
     await page.goto('/daily-attendance');
     await page.getByLabel('Class division').selectOption({index:1});
     await expect(page.getByText('Not submitted',{exact:true})).toBeVisible();
+    await expect(page.getByRole('group',{name:/Attendance for/}).first()).toBeVisible();
     const rosterSize=await page.getByRole('group',{name:/Attendance for/}).count();
     expect(rosterSize).toBeGreaterThan(0);
     await expect(page.getByText('Not marked',{exact:true})).toHaveCount(rosterSize);
@@ -234,7 +235,7 @@ test('admission becomes an enrolled student with a printable certificate',async(
     await page.getByRole('button',{name:'Save record',exact:true}).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     const popup=page.waitForEvent('popup');
-    await page.getByRole('row').filter({hasText:number}).getByRole('button',{name:'Print certificate'}).click();
+    await page.getByRole('row').filter({hasText:number}).getByRole('link',{name:'Print certificate'}).click();
     const certificate=await popup;
     await expect(certificate.getByRole('heading',{name:'Bonafide Certificate'})).toBeVisible();
     await expect(certificate.getByRole('cell',{name,exact:true})).toBeVisible();
@@ -260,7 +261,7 @@ test('accountant can collect, print and refund a payment with reconciled balance
     expect(Number(afterPayment.balance)).toBe(Number(bill.balance)-1);
     await page.getByLabel('Search records').fill(payment.receipt_number);
     const popup=page.waitForEvent('popup');
-    await page.getByRole('row').filter({hasText:payment.receipt_number}).getByRole('button',{name:'Print receipt'}).click();
+    await page.getByRole('row').filter({hasText:payment.receipt_number}).getByRole('link',{name:'Print receipt'}).click();
     const receipt=await popup;
     await expect(receipt.getByRole('button',{name:'Print receipt'})).toBeVisible();
     await receipt.close();
