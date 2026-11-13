@@ -3,6 +3,7 @@ import {useQuery,useQueryClient} from '@tanstack/react-query';
 import AuthContext from '../contexts/authContext';
 import {authAxios} from '../axiosInstance';
 import {allRecords,errorMessage} from './api';
+import SearchableSelect from '../components/SearchableSelect';
 import './workspace.css';
 
 type Status='PRESENT'|'ABSENT'|'LATE'|'HALF_DAY'|'EXCUSED';
@@ -49,7 +50,7 @@ export default function Attendance(){
 
  return <div className='workspace attendance-page'><header className='workspace-heading'><div><div className='workspace-eyebrow'>DAILY RHYTHMS</div><h1>Student attendance</h1><p>Mark exceptions, fill the remaining students as present, then submit the register.</p></div></header>
  <section className='workspace-panel attendance-panel'>
-  <div className='attendance-controls'><label className='workspace-field'>Class division<select value={division} onChange={e=>changeDivision(e.target.value)}><option value=''>Choose a class division</option>{divisions.data?.map((d:any)=><option value={d.id} key={d.id}>{d.display_name||d.name}</option>)}</select></label><label className='workspace-field'>Attendance date<input type='date' max={today} value={date} onChange={e=>changeDate(e.target.value)}/></label>
+  <div className='attendance-controls'><label className='workspace-field'>Class division<SearchableSelect ariaLabel='Class division' value={division} loading={divisions.isLoading} placeholder='Choose a class division' options={(divisions.data||[]).map((d:any)=>({value:d.id,label:d.display_name||d.name}))} onChange={next=>changeDivision(next as string)}/></label><label className='workspace-field'>Attendance date<input type='date' max={today} value={date} onChange={e=>changeDate(e.target.value)}/></label>
   {division&&!attendance.isLoading&&<div className={'attendance-register-state '+(dirty?'draft':complete?'submitted':'unsubmitted')}><span aria-hidden='true'>{dirty?'●':complete?'✓':'○'}</span><div><strong>{registerState}</strong><small>{dirty?'Save to submit these changes.':complete?'This register has been saved.':hasSaved?marked+' of '+studentCount+' students saved.':'No attendance has been saved for this date.'}</small></div></div>}</div>
   {error&&<div className='workspace-error' role='alert'>{error}</div>}{message&&<div className='workspace-notice' role='status'>{message}</div>}
   {students.isError||attendance.isError||divisions.isError?<div className='workspace-error'>{errorMessage(students.error||attendance.error||divisions.error)}</div>:!division?<div className='workspace-empty'><h3>Select a class to begin</h3><p>Choose a class and date to see whether attendance is submitted or still needs marking.</p></div>:students.isLoading||attendance.isLoading?<div className='workspace-empty'>Checking the saved register…</div>:<>

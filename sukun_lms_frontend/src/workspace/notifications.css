@@ -11,7 +11,7 @@
 .notification-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:24px;align-items:start}
 .notification-inbox{padding:0!important;overflow:hidden}
 .notification-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:20px 22px;border-bottom:1px solid #edf0e8}
-.notification-toolbar select{max-width:190px;font-size:12px;padding:8px 10px;min-height:35px}
+.notification-module-filter{width:190px}
 .notification-filters{display:flex;gap:4px;padding:3px;background:#f3f4ef;border-radius:9px}
 .workspace .notification-filters button{border:0;background:transparent;box-shadow:none;padding:7px 13px;color:#728075;font-size:12px;border-radius:6px;white-space:nowrap}
 .workspace .notification-filters button.is-selected{background:#fff;color:#2d5740;box-shadow:0 1px 4px #1538200d}
@@ -74,7 +74,7 @@
 .notification-preferences .notification-module-options{display:grid;grid-template-columns:repeat(3,1fr)}}
 @media(max-width:600px){.notification-page-actions{justify-content:space-between;width:100%;gap:10px}
 .notification-toolbar{padding:15px;gap:10px}
-.notification-toolbar select{max-width:100%;width:100%;order:3}
+.notification-module-filter{width:100%;order:3}
 .notification-list>li,.notification-dialog .notification-list>li{padding:17px 14px;gap:10px}
 .notification-kind{width:29px;height:29px;border-radius:9px}
 .notification-meta{font-size:9px;align-items:flex-start}

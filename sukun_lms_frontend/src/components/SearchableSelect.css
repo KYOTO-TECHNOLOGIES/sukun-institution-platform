@@ -1,0 +1,28 @@
+.sukun-select{position:relative;width:100%;min-width:0;color:#18382f;font-family:Inter,system-ui,sans-serif}
+.sukun-select-control{min-height:43px;width:100%;display:flex;align-items:center;gap:6px;padding:5px 8px 5px 12px;background:#fff;border:1px solid #d7e2da;border-radius:10px;cursor:text;transition:border-color .16s,box-shadow .16s,background .16s}
+.sukun-select-control:hover{border-color:#adc4b4;background:#fdfefd}
+.sukun-select.is-open .sukun-select-control{border-color:#3d8966;box-shadow:0 0 0 3px #39845f18;background:#fff}
+.sukun-select-control>input{min-width:50px;flex:1;width:100%;height:31px!important;min-height:0!important;padding:0!important;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;color:#18382f!important;font:inherit;font-size:13px!important;text-overflow:ellipsis}
+.sukun-select-control>input::placeholder{color:#98a69d;opacity:1}
+.sukun-select-toggle,.sukun-select-clear{width:26px;height:28px;min-width:26px;display:grid;place-items:center;border:0!important;border-radius:7px!important;padding:0!important;background:transparent!important;box-shadow:none!important;color:#71857a;font-size:17px;line-height:1}
+.sukun-select-clear{font-size:18px;color:#94a198}
+.sukun-select-toggle:hover,.sukun-select-clear:hover{background:#edf4ef!important;color:#285f44}
+.sukun-select-toggle{transition:transform .16s}.sukun-select.is-open .sukun-select-toggle{transform:rotate(180deg)}
+.sukun-select.is-disabled{opacity:.62}.sukun-select.is-disabled .sukun-select-control{cursor:not-allowed;background:#f2f5f2}
+.sukun-select-menu{position:absolute;z-index:1500;inset:calc(100% + 7px) 0 auto;min-width:220px;padding:7px;background:#fff;border:1px solid #dce6df;border-radius:12px;box-shadow:0 18px 50px #17382e22,0 3px 12px #17382e0d;animation:sukun-select-in .12s ease-out}
+.sukun-select-menu.above{inset:auto 0 calc(100% + 7px)}
+.sukun-select-search{display:flex;align-items:center;gap:8px;padding:5px 7px 8px;border-bottom:1px solid #edf1ee}
+.sukun-select-search span{font-size:16px;color:#62816d}
+.sukun-select-search input{width:100%;min-height:34px!important;padding:6px 7px!important;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;color:#244a37!important;font-size:12px!important}
+.sukun-select-search input::placeholder{color:#98a69d}
+.sukun-select-menu ul{list-style:none;margin:5px 0 0;padding:0;max-height:238px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.sukun-select-menu li{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 11px;border-radius:8px;color:#435d4d;font-size:12px;line-height:1.35;cursor:pointer}
+.sukun-select-menu li:hover,.sukun-select-menu li.is-active{background:#edf5ef;color:#1f5e40}
+.sukun-select-menu li.is-selected{font-weight:650;color:#17633f}.sukun-select-menu li b{color:#268258;font-size:13px}
+.sukun-select-menu li.is-disabled{opacity:.45;cursor:not-allowed;background:none}
+.sukun-select-empty{padding:23px 12px;text-align:center;color:#63776a;font-size:12px}.sukun-select-empty small{display:block;margin-top:5px;color:#9aa69e;font-size:10px}
+.sukun-select-chip{max-width:180px;display:inline-flex;align-items:center;gap:5px;padding:5px 7px 5px 9px;background:#e9f3eb;border:1px solid #d7e8da;border-radius:7px;color:#286344;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sukun-select-chip button{border:0!important;background:none!important;padding:0!important;box-shadow:none!important;color:#70917b;font-size:15px;line-height:1}
+@keyframes sukun-select-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.sukun-select-control{min-height:45px}.sukun-select-menu{position:fixed;left:12px;right:12px;top:auto;bottom:12px;min-width:0;max-height:70dvh;border-radius:16px;box-shadow:0 0 0 100vmax #17382e4d,0 18px 55px #17382e38}.sukun-select-menu.above{inset:auto 12px 12px}.sukun-select-menu ul{max-height:52dvh}.sukun-select-search{padding:9px}.sukun-select-search input{min-height:40px!important;background:#f5f8f5!important;border-radius:9px!important;padding:9px 10px!important}}
+@media(prefers-reduced-motion:reduce){.sukun-select-menu{animation:none}.sukun-select-toggle{transition:none}}

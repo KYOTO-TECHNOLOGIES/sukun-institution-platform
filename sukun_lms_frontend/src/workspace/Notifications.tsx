@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import AuthContext from '../contexts/authContext';
 import { authAxios } from '../axiosInstance';
 import { Glyph, Skeleton, WorkspaceDialog } from './WorkspaceUI';
+import SearchableSelect from '../components/SearchableSelect';
 import './notifications.css';
 
 type InboxItem = { id: string; module: string; module_label: string; title: string; message: string; href: string; attention: boolean; created_at: string; read_at: string | null };
@@ -204,7 +205,7 @@ function InboxList({ compact = false, onNavigate }: { compact?: boolean; onNavig
                 <button className={!unread ? 'is-selected' : ''} aria-pressed={!unread} onClick={() => compact ? setPreviewUnread(false) : filter({ unread: '' })}>All</button>
                 <button className={unread ? 'is-selected' : ''} aria-pressed={unread} onClick={() => compact ? setPreviewUnread(true) : filter({ unread: 'true' })}>Unread {summary?.unread_count ? <span>{summary.unread_count}</span> : null}</button>
             </div>
-            {!compact && <select aria-label='Filter by module' value={module} onChange={event => filter({ module: event.target.value })}><option value=''>All modules</option>{summary?.modules.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}</select>}
+            {!compact && <div className='notification-module-filter'><SearchableSelect ariaLabel='Filter by module' value={module} placeholder='All modules' options={(summary?.modules||[]).map(item=>({value:item.key,label:item.label}))} onChange={next=>filter({module:next as string})}/></div>}
             <button className='notification-mark-all' disabled={busy || !summary?.unread_count} onClick={() => void act(readAll)}><Glyph name='check' size={16} /> Mark all read</button>
         </div>
         {error && <div className='workspace-error' role='alert'>{error}</div>}

@@ -1,234 +1,93 @@
-import React, { forwardRef, HTMLAttributes, ReactNode } from 'react';
+import React, { forwardRef, HTMLAttributes, ReactNode, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import Option, { IOptionsProps, Options } from '../Option';
+import { IOptionsProps } from '../Option';
+import SearchableSelect, { SearchableOption } from '../../SearchableSelect';
 import Validation from './Validation';
 
-interface ISelectProps extends Partial<IOptionsProps>, HTMLAttributes<HTMLSelectElement> {
-	id?: string;
-	className?: string;
-	name?: string;
-	children?: ReactNode;
-	ariaLabel: string;
-	placeholder?: string;
-	size?: 'lg' | 'sm';
-	multiple?: boolean;
-	disabled?: boolean;
-	required?: boolean;
-	ariaDescribedby?: string;
-	ariaLabelledby?: string;
-	title?: string;
-	value?: string | string[];
-	defaultValue?: string | string[];
-	isTouched?: boolean;
-	isValid?: boolean;
-	invalidFeedback?: string;
-	validFeedback?: string;
-	isValidMessage?: boolean;
-	isTooltipFeedback?: boolean;
-	onBlur?(...args: unknown[]): unknown;
-	onChange?(...args: unknown[]): unknown;
-	onFocus?(...args: unknown[]): unknown;
-	onInput?(...args: unknown[]): unknown;
-	onInvalid?(...args: unknown[]): unknown;
-	onSelect?(...args: unknown[]): unknown;
+interface ISelectProps extends Partial<IOptionsProps>, Omit<HTMLAttributes<HTMLSelectElement>, 'defaultValue' | 'onChange'> {
+    id?: string;
+    className?: string;
+    name?: string;
+    children?: ReactNode;
+    ariaLabel: string;
+    placeholder?: string;
+    size?: 'lg' | 'sm';
+    multiple?: boolean;
+    disabled?: boolean;
+    required?: boolean;
+    ariaDescribedby?: string;
+    ariaLabelledby?: string;
+    title?: string;
+    value?: string | string[];
+    defaultValue?: string | string[];
+    isTouched?: boolean;
+    isValid?: boolean;
+    invalidFeedback?: string;
+    validFeedback?: string;
+    isValidMessage?: boolean;
+    isTooltipFeedback?: boolean;
+    onBlur?(...args: any[]): unknown;
+    onChange?(...args: any[]): unknown;
+    onFocus?(...args: any[]): unknown;
+    onInput?(...args: any[]): unknown;
+    onInvalid?(...args: any[]): unknown;
+    onSelect?(...args: any[]): unknown;
 }
-const Select = forwardRef<HTMLSelectElement, ISelectProps>(
-	(
-		{
-			id,
-			name,
-			className,
-			children,
-			required,
-			placeholder,
-			ariaDescribedby,
-			ariaLabelledby,
-			ariaLabel,
-			list,
-			multiple,
-			title,
-			size,
-			disabled,
-			value,
-			defaultValue,
-			isValid,
-			isTouched,
-			invalidFeedback,
-			validFeedback,
-			isValidMessage,
-			isTooltipFeedback,
-			onBlur,
-			onChange,
-			onFocus,
-			onInput,
-			onInvalid,
-			onSelect,
-			...props
-		},
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		ref,
-	) => {
-		return (
-			<>
-				<select
-					ref={ref}
-					id={id}
-					className={classNames(
-						'form-select',
-						{
-							[`form-select-${size}`]: size,
-							'text-muted': value === '' && placeholder,
-							'is-invalid': !isValid && isTouched && invalidFeedback,
-							'is-valid': !isValid && isTouched && !invalidFeedback,
-						},
-						className,
-					)}
-					name={name}
-					aria-label={ariaLabel}
-					aria-describedby={ariaDescribedby}
-					aria-labelledby={ariaLabelledby}
-					multiple={multiple}
-					disabled={disabled}
-					title={title}
-					value={value}
-					defaultValue={defaultValue}
-					required={required}
-					onBlur={onBlur}
-					onChange={onChange}
-					onFocus={onFocus}
-					onInput={onInput}
-					onInvalid={onInvalid}
-					onSelect={onSelect}
-					// eslint-disable-next-line react/jsx-props-no-spreading
-					{...props}>
-					{placeholder && (
-						<Option value='' hidden>
-							{placeholder}
-						</Option>
-					)}
-					{children || (list && <Options list={list} />)}
-				</select>
-				{isValidMessage && (
-					<Validation
-						isTouched={isTouched}
-						invalidFeedback={invalidFeedback}
-						validFeedback={validFeedback}
-						isTooltip={isTooltipFeedback}
-					/>
-				)}
-			</>
-		);
-	},
-);
+
+const textOf = (node: ReactNode): string => React.Children.toArray(node).map(child => {
+    if (typeof child === 'string' || typeof child === 'number') return String(child);
+    return React.isValidElement(child) ? textOf((child.props as any).children) : '';
+}).join('');
+
+function optionsFrom(children: ReactNode, list?: IOptionsProps['list']) {
+    if (list) return list.map(item => ({ value: item.value ?? '', label: String(item.text ?? item.label ?? item.value ?? '') }));
+    const result: SearchableOption[] = [];
+    const visit = (nodes: ReactNode) => React.Children.forEach(nodes, child => {
+        if (!React.isValidElement(child)) return;
+        if (child.type === React.Fragment) { visit((child.props as any).children); return; }
+        const props = child.props as any;
+        const label = textOf(props.children);
+        result.push({ value: props.value ?? label, label, disabled: props.disabled });
+    });
+    visit(children);
+    return result;
+}
+
+/** Backwards-compatible adapter that upgrades legacy form selects to the shared searchable combobox. */
+const Select = forwardRef<HTMLSelectElement, ISelectProps>(({
+    id, name, className, children, required, placeholder, ariaLabel, list, multiple = false, size, disabled = false,
+    value, defaultValue, isValid, isTouched, invalidFeedback, validFeedback, isValidMessage = true,
+    isTooltipFeedback, onBlur, onChange,
+}, _ref) => {
+    const options = useMemo(() => optionsFrom(children, list), [children, list]);
+    const empty = options.find(option => String(option.value) === '');
+    const choices = options.filter(option => String(option.value) !== '');
+    const [internal, setInternal] = useState<string | string[]>(defaultValue ?? (multiple ? [] : ''));
+    const current = value === undefined ? internal : value;
+    const change = (next: string | string[]) => {
+        if (value === undefined) setInternal(next);
+        const target = { id, name: name || id, value: next, type: multiple ? 'select-multiple' : 'select-one' };
+        onChange?.({ target, currentTarget: target, persist: () => undefined });
+    };
+    return <>
+        <SearchableSelect id={id} name={name} ariaLabel={ariaLabel} value={current} options={choices} onChange={change}
+            multiple={multiple} required={required} disabled={disabled} placeholder={placeholder || empty?.label || 'Select an option'}
+            className={classNames('legacy-searchable-select',{[`sukun-select-${size}`]:size,'is-invalid':!isValid&&isTouched&&invalidFeedback,'is-valid':isValid&&isTouched},className)}
+            onBlur={()=>{const target={id,name:name||id,value:current,type:multiple?'select-multiple':'select-one'};onBlur?.({target,currentTarget:target,persist:()=>undefined});}} />
+        {isValidMessage&&<Validation isTouched={isTouched} invalidFeedback={invalidFeedback} validFeedback={validFeedback} isTooltip={isTooltipFeedback}/>}
+    </>;
+});
 Select.displayName = 'Select';
 Select.propTypes = {
-	id: PropTypes.string,
-	className: PropTypes.string,
-	/**
-	 * If the name value is left blank, the id value is assigned.
-	 */
-	name: PropTypes.string,
-	// @ts-ignore
-	children: PropTypes.node,
-	ariaLabel: PropTypes.string.isRequired,
-	placeholder: PropTypes.string,
-	size: PropTypes.oneOf(['lg', 'sm']),
-	multiple: PropTypes.bool,
-	/**
-	 * A *disabled* element isn't editable and isn't sent on submit.
-	 */
-	disabled: PropTypes.bool,
-	required: PropTypes.bool,
-	ariaDescribedby: PropTypes.string,
-	ariaLabelledby: PropTypes.string,
-	title: PropTypes.string,
-	/**
-	 * For formik ***`formik.values.ID_OR_NAME`***
-	 */
-	// @ts-ignore
-	value: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
-	// @ts-ignore
-	defaultValue: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
-	// @ts-ignore
-	list: PropTypes.arrayOf(
-		PropTypes.shape({
-			value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-			text: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-			label: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-		}),
-	),
-	/**
-	 * For formik ***`formik.touched.ID_OR_NAME`***
-	 */
-	isTouched: PropTypes.bool,
-	/**
-	 * For formik ***`formik.isValid`***
-	 */
-	isValid: PropTypes.bool,
-	/**
-	 * For formik ***`formik.errors.ID_OR_NAME`***
-	 */
-	invalidFeedback: PropTypes.string,
-	validFeedback: PropTypes.string,
-	isValidMessage: PropTypes.bool,
-	isTooltipFeedback: PropTypes.bool,
-	/**
-	 * Fires the moment that the element loses focus. For formik ***`formik.handleBlur`***
-	 */
-	onBlur: PropTypes.func,
-	/**
-	 * Fires the moment when the value of the element is changed. For formik ***`formik.handleChange`***
-	 */
-	onChange: PropTypes.func,
-	/**
-	 * Fires the moment when the element gets focus
-	 */
-	onFocus: PropTypes.func,
-	/**
-	 * Script to be run when an element gets user input
-	 */
-	onInput: PropTypes.func,
-	/**
-	 * Script to be run when an element is invalid
-	 */
-	onInvalid: PropTypes.func,
-	/**
-	 * Fires after some text has been selected in an element
-	 */
-	onSelect: PropTypes.func,
-	/**
-	 * More information, [react-input-mask](https://github.com/sanniassin/react-input-mask#react-input-mask).
-	 */
-};
-Select.defaultProps = {
-	id: undefined,
-	className: undefined,
-	name: undefined,
-	children: null,
-	placeholder: undefined,
-	multiple: false,
-	size: undefined,
-	disabled: false,
-	required: false,
-	ariaDescribedby: undefined,
-	ariaLabelledby: undefined,
-	title: undefined,
-	value: undefined,
-	defaultValue: undefined,
-	list: undefined,
-	isTouched: false,
-	isValid: false,
-	invalidFeedback: undefined,
-	validFeedback: undefined,
-	isValidMessage: true,
-	isTooltipFeedback: false,
-	onBlur: undefined,
-	onChange: undefined,
-	onFocus: undefined,
-	onInput: undefined,
-	onInvalid: undefined,
-	onSelect: undefined,
+    id: PropTypes.string, className: PropTypes.string, name: PropTypes.string,
+    // @ts-ignore React's broad node type and the runtime validator differ on bigint.
+    children: PropTypes.node,
+    ariaLabel: PropTypes.string.isRequired, placeholder: PropTypes.string, size: PropTypes.oneOf(['lg','sm']),
+    multiple: PropTypes.bool, disabled: PropTypes.bool, required: PropTypes.bool, value: PropTypes.any,
+    defaultValue: PropTypes.any, list: PropTypes.array, isTouched: PropTypes.bool, isValid: PropTypes.bool,
+    invalidFeedback: PropTypes.string, validFeedback: PropTypes.string, isValidMessage: PropTypes.bool,
+    isTooltipFeedback: PropTypes.bool, onBlur: PropTypes.func, onChange: PropTypes.func,
 };
 
 export default Select;

@@ -14,6 +14,18 @@ async function login(page:Page,phone='+919900001001'){
     await expect(page).not.toHaveURL(/login/);
 }
 
+async function chooseFirst(page:Page,label:string){
+    const control=page.getByRole('combobox',{name:label,exact:true});
+    await control.click();
+    await page.getByRole('listbox',{name:label+' options'}).getByRole('option').first().click();
+}
+
+async function chooseValue(page:Page,label:string,value:string){
+    const control=page.getByRole('combobox',{name:label,exact:true});
+    await control.click();
+    await page.getByRole('listbox',{name:label+' options'}).locator('[data-value="'+value+'"]').click();
+}
+
 test('administrator can open dashboard and capture an enquiry',async({page})=>{
     const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
     await login(page);
@@ -122,6 +134,35 @@ test('mobile navigation works',async({page})=>{
     await page.screenshot({path:'../.local/workspace-mobile.png',fullPage:true});
 });
 
+test('form dropdowns filter options while typing',async({page})=>{
+    await login(page);
+    await page.goto('/workspace/applications');
+    await page.getByRole('button',{name:'+ Add record',exact:true}).click();
+    const division=page.getByRole('combobox',{name:'Class division',exact:true});
+    await division.click();
+    const options=page.getByRole('listbox',{name:'Class division options'}).getByRole('option');
+    expect(await options.count()).toBeGreaterThan(1);
+    await page.getByRole('searchbox',{name:'Search Class division'}).fill('Grade 7');
+    await expect(options.first()).toContainText(/Grade 7/i);
+    for(const text of await options.allTextContents())expect(text).toMatch(/Grade 7/i);
+    await page.screenshot({path:'../.local/searchable-dropdown.png'});
+    await page.setViewportSize({width:390,height:844});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+    await page.screenshot({path:'../.local/searchable-dropdown-mobile.png'});
+    await options.first().click();
+    await expect(division).not.toHaveValue('');
+    await page.getByRole('button',{name:'Cancel',exact:true}).click();
+    await page.setViewportSize({width:1280,height:800});
+    await page.goto('/schedules');
+    await page.getByRole('button',{name:'New Subject Schedule',exact:true}).click();
+    const session=page.getByRole('combobox',{name:'Session',exact:true});
+    await session.click();
+    await page.getByRole('searchbox',{name:'Search Session'}).fill('after');
+    await expect(page.getByRole('option',{name:'Afternoon',exact:true})).toBeVisible();
+    await page.getByRole('option',{name:'Afternoon',exact:true}).click();
+    await expect(session).toHaveValue('Afternoon');
+});
+
 test('teacher can distinguish an unsubmitted attendance register from saved attendance',async({page})=>{
     let saved:any=null;
     await page.route('**/api/attendance/student-attendance/**',async route=>{
@@ -133,7 +174,7 @@ test('teacher can distinguish an unsubmitted attendance register from saved atte
     });
     await login(page,'+919900001002');
     await page.goto('/daily-attendance');
-    await page.getByLabel('Class division').selectOption({index:1});
+    await chooseFirst(page,'Class division');
     await expect(page.getByText('Not submitted',{exact:true})).toBeVisible();
     await expect(page.getByRole('group',{name:/Attendance for/}).first()).toBeVisible();
     const rosterSize=await page.getByRole('group',{name:/Attendance for/}).count();
@@ -207,15 +248,15 @@ test('admission becomes an enrolled student with a printable certificate',async(
     await page.getByRole('button',{name:'+ Add record',exact:true}).click();
     await page.getByLabel('First name',{exact:false}).fill(name);
     await page.getByLabel('Unique student login phone').fill(phone);
-    await page.getByLabel('Class division').selectOption({index:1});
-    await page.getByLabel('Academic year').selectOption({index:1});
+    await chooseFirst(page,'Class division');
+    await chooseFirst(page,'Academic year');
     await page.getByLabel('Documents verified').check();
     await page.getByRole('button',{name:'Save record',exact:true}).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await page.getByLabel('Search records').fill(name);
     const row=page.getByRole('row').filter({hasText:name});
     await row.getByRole('button',{name:'Review',exact:true}).click();
-    await page.getByLabel('Decision').selectOption('APPROVED');
+    await chooseValue(page,'Decision','APPROVED');
     await page.getByRole('dialog').getByRole('button',{name:'Review',exact:true}).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await row.getByRole('button',{name:'Enroll student',exact:true}).click();
@@ -229,7 +270,7 @@ test('admission becomes an enrolled student with a printable certificate',async(
     await page.getByRole('button',{name:'Certificate register',exact:true}).click();
     await page.getByRole('link',{name:'Open register →'}).click();
     await page.getByRole('button',{name:'+ Add record',exact:true}).click();
-    await page.getByLabel('Certificate type').selectOption('BONAFIDE');
+    await chooseValue(page,'Certificate type','BONAFIDE');
     const number='E2E-'+Date.now();
     await page.getByLabel('Certificate number').fill(number);
     await page.getByRole('button',{name:'Save record',exact:true}).click();
@@ -250,7 +291,7 @@ test('accountant can collect, print and refund a payment with reconciled balance
     const reference='BROWSER-'+Date.now();
     await page.goto('/workspace/receipts');
     await page.getByRole('button',{name:'+ Add record',exact:true}).click();
-    await page.getByLabel('Student bill').selectOption(bill.id);
+    await chooseValue(page,'Student bill',bill.id);
     await page.getByLabel('Payment amount').fill('1.00');
     await page.getByLabel('Bank / transaction reference').fill(reference);
     await page.getByRole('button',{name:'Save record',exact:true}).click();
@@ -267,7 +308,7 @@ test('accountant can collect, print and refund a payment with reconciled balance
     await receipt.close();
     await page.goto('/workspace/refunds');
     await page.getByRole('button',{name:'+ Add record',exact:true}).click();
-    await page.getByLabel('Original receipt').selectOption(payment.id);
+    await chooseValue(page,'Original receipt',payment.id);
     await page.getByLabel('Refund amount').fill('1.00');
     await page.getByLabel('Reason',{exact:false}).fill('Browser verification refund');
     await page.getByRole('button',{name:'Save record',exact:true}).click();

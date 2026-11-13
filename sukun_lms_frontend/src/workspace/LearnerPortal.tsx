@@ -7,6 +7,7 @@ import {authAxios} from '../axiosInstance';
 import PageWrapper from '../layout/PageWrapper/PageWrapper';
 import Page from '../layout/Page/Page';
 import {errorMessage} from './api';
+import SearchableSelect from '../components/SearchableSelect';
 import './workspace.css';
 
 function CourseRoom({id,onBack,canSubmit}:{id:string;onBack:()=>void;canSubmit:boolean}) {
@@ -58,7 +59,7 @@ export default function LearnerPortal() {
     return <PageWrapper title={canSubmit?'My learning':'Family portal'}><Page container='fluid'><div className='workspace'>
         {course?<CourseRoom id={course} canSubmit={canSubmit} onBack={()=>setCourse('')}/>:<>
         <header className='workspace-heading'><div><div className='workspace-eyebrow'>SUKUN / {canSubmit?'STUDENT':'PARENT'} PORTAL</div><h1>{canSubmit?'Your next chapter starts here.':'A clear view of your child’s journey.'}</h1><p>Learning, progress, and the details that matter — together in one place.</p></div>
-        {data?.students?.length>1&&<select aria-label='Select child' style={{width:230}} value={student||data.student?.id} onChange={e=>{setStudent(e.target.value);setParams({tab,student:e.target.value});}}>{data.students.map((s:any)=><option key={s.id} value={s.id}>{s.name}</option>)}</select>}</header>
+        {data?.students?.length>1&&<div style={{width:230}}><SearchableSelect ariaLabel='Select child' value={student||data.student?.id} placeholder='Select child' options={data.students.map((s:any)=>({value:s.id,label:s.name}))} onChange={next=>{setStudent(next as string);setParams({tab,student:next as string});}}/></div>}</header>
         {query.isLoading?<div className='workspace-empty'>Loading your portal…</div>:query.isError?<div className='workspace-error'>{errorMessage(query.error)}</div>:!data?.student?<div className='workspace-empty'><h2>Your account is ready</h2><p>Ask your institution to link your student profile to see your classes here.</p></div>:<>
         <div className='workspace-stat-grid'><div className='workspace-stat'><small>Student</small><strong style={{fontSize:22}}>{data.student.name}</strong><small>{data.student.division}</small></div><div className='workspace-stat'><small>Active courses</small><strong>{data.courses.length}</strong><small>Keep a steady learning rhythm</small></div><div className='workspace-stat'><small>Lessons completed</small><strong>{data.courses.reduce((n:number,c:any)=>n+c.completed,0)}</strong><small>Every step counts</small></div><div className='workspace-stat'><small>Fee balance</small><strong>{data.fees.reduce((n:number,f:any)=>n+Number(f.balance),0).toLocaleString()}</strong><small>Contact accounts for payment</small></div></div>
         <nav className='workspace-tabs'>{['learning','homework','fees','attendance','results','notices'].map(t=><button key={t} className={tab===t?'active':''} onClick={()=>setTab(t)}>{t[0].toUpperCase()+t.slice(1)}</button>)}</nav>{error&&<div className='workspace-error'>{error}</div>}
