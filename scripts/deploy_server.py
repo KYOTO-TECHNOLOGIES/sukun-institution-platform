@@ -82,6 +82,36 @@ def validate_image_archive(path, expected):
                         raise ValueError('Unexpected image reference in OCI index.')
 
 
+def image_configurations(path):
+    """Read portable image identities from the already-verified Docker archive."""
+    configurations = {}
+    with tarfile.open(path, 'r:gz') as archive:
+        entries = json.load(archive.extractfile('manifest.json'))
+        for entry in entries:
+            member = archive.getmember(entry['Config'])
+            if not member.isfile() or member.size > 1024 * 1024:
+                raise ValueError('Invalid image configuration in release archive.')
+            config = json.load(archive.extractfile(member))
+            for tag in entry['RepoTags']:
+                configurations[tag] = config
+    return configurations
+
+
+def validate_loaded_image(actual, expected, reference, commit, architecture):
+    # Classic Docker reports the config digest as Id; Docker 29's containerd
+    # store reports the target manifest/index digest. Compare the complete
+    # runtime configuration and content-addressed layer chain across stores.
+    if (actual.get('Os') != 'linux' or expected.get('os') != 'linux'
+            or actual.get('Architecture') != architecture or expected.get('architecture') != architecture
+            or reference not in (actual.get('RepoTags') or [])
+            or not expected.get('config') or actual.get('Config') != expected['config']
+            or actual.get('RootFS', {}).get('Type') != expected.get('rootfs', {}).get('type')
+            or actual.get('RootFS', {}).get('Layers') != expected.get('rootfs', {}).get('diff_ids')
+            or not expected.get('rootfs', {}).get('diff_ids')
+            or (actual.get('Config', {}).get('Labels') or {}).get('org.opencontainers.image.revision') != commit):
+        raise ValueError('Loaded image content does not match the verified release: ' + reference)
+
+
 def extract_source(path, destination):
     total = 0
     with tarfile.open(path, 'r:gz') as archive:
@@ -194,6 +224,7 @@ def deploy(release_id):
         if metadata.get('commit') != commit or metadata.get('architecture') != architecture:
             raise ValueError('Release metadata does not match the requested deployment.')
         validate_image_archive(destination / 'images.tar.gz', list(images.values()))
+        configurations = image_configurations(destination / 'images.tar.gz')
         source = destination / 'source'
         source.mkdir()
         extract_source(destination / 'source.tar.gz', source)
@@ -212,8 +243,7 @@ def deploy(release_id):
         run(['docker', '--host', 'unix:///var/run/docker.sock', 'image', 'load', '-i', str(destination / 'images.tar.gz')])
         actual = json.loads(subprocess.check_output(['docker', '--host', 'unix:///var/run/docker.sock', 'image', 'inspect', *images.values()], text=True))
         for role, item in zip(images, actual):
-            if item['Id'] != metadata['images'][role]['id'] or (item.get('Config', {}).get('Labels') or {}).get('org.opencontainers.image.revision') != commit:
-                raise ValueError('Loaded image does not match the verified release.')
+            validate_loaded_image(item, configurations[images[role]], images[role], commit, architecture)
         dc('up', '-d', '--no-build', '--wait', 'db', 'redis')
         db_size = int(dc('exec', '-T', 'db', 'psql', '-U', 'sukun', '-d', 'sukun', '-Atc', 'SELECT pg_database_size(current_database())', capture_output=True, text=True).stdout.strip())
         media_size = int(dc('run', '--rm', '--no-deps', '-T', 'api', 'du', '-sb', '/app/media', capture_output=True, text=True).stdout.split()[0])

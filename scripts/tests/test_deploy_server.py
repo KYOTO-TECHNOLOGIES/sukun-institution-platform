@@ -6,7 +6,7 @@ import tarfile
 import tempfile
 import unittest
 
-from scripts.deploy_server import extract_source, validate_compose, validate_image_archive, verify_checksums, FILES, checksum
+from scripts.deploy_server import extract_source, validate_compose, validate_image_archive, validate_loaded_image, image_configurations, verify_checksums, FILES, checksum
 
 
 class DeploymentBoundaryTests(unittest.TestCase):
@@ -69,6 +69,32 @@ class DeploymentBoundaryTests(unittest.TestCase):
                     for role, image in images.items()},
                 'volumes': {name: {'name': 'sukun_prod_' + name} for name in ('postgres_data', 'media_data', 'static_data')},
                 'networks': {'default': {'name': 'sukun_prod_default'}}}
+
+    def test_loaded_image_identity_works_across_stores_but_rejects_changed_content(self):
+        expected = {'os': 'linux', 'architecture': 'amd64',
+                    'config': {'Env': ['APP=production'], 'User': '10001', 'Cmd': ['daphne'],
+                               'Labels': {'org.opencontainers.image.revision': 'a' * 40}},
+                    'rootfs': {'type': 'layers', 'diff_ids': ['sha256:' + 'b' * 64]}}
+        actual = {'Id': 'sha256:' + 'c' * 64, 'Os': 'linux', 'Architecture': 'amd64',
+                  'RepoTags': [self.images['api']], 'Config': copy.deepcopy(expected['config']),
+                  'RootFS': {'Type': 'layers', 'Layers': expected['rootfs']['diff_ids'][:]}}
+        path = self.archive([
+            ('manifest.json', json.dumps([{'RepoTags': [self.images['api']], 'Config': 'config.json'}]).encode(), tarfile.REGTYPE),
+            ('config.json', json.dumps(expected).encode(), tarfile.REGTYPE)])
+        archived = image_configurations(path)[self.images['api']]
+        validate_loaded_image(actual, archived, self.images['api'], 'a' * 40, 'amd64')
+        for mutation in [
+            lambda i: i['Config'].update(Env=['APP=changed']),
+            lambda i: i['Config'].update(User='root'),
+            lambda i: i['Config'].update(Cmd=['unexpected']),
+            lambda i: i['RootFS'].update(Layers=['sha256:' + 'd' * 64]),
+            lambda i: i.update(Architecture='arm64'),
+            lambda i: i.update(RepoTags=['other:latest']),
+        ]:
+            changed = copy.deepcopy(actual)
+            mutation(changed)
+            with self.assertRaises(ValueError):
+                validate_loaded_image(changed, archived, self.images['api'], 'a' * 40, 'amd64')
 
     def test_compose_rejects_host_access_external_storage_and_uncapped_resources(self):
         config = self.config()
