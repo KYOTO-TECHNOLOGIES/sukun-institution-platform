@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (PlanViewSet, OrganizationViewSet, InvoiceViewSet, EventViewSet,
-    PlatformOverview, SubscriptionView, OwnInvoiceView)
+    PlatformOverview, SubscriptionView, OwnInvoiceView, OwnInvoiceList)
 from .hierarchy import HierarchyView, SetupView
 from .assistant import AssistantView
 from .webhooks import BillingWebhook
@@ -20,5 +20,6 @@ urlpatterns = [
     path('platform/overview/', PlatformOverview.as_view()),
     path('platform/', include(router.urls)),
     path('subscription/', SubscriptionView.as_view()),
+    path('my-invoices/', OwnInvoiceList.as_view()),
     path('my-invoices/<uuid:pk>/print/', OwnInvoiceView.as_view()),
 ]

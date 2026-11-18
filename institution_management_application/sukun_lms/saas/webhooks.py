@@ -40,7 +40,7 @@ class BillingWebhook(APIView):
             fresh = False
         signed = timestamp.encode()+b'.'+raw
         expected = hmac.new(secret.encode(), signed, hashlib.sha256).hexdigest()
-        if not fresh or not hmac.compare_digest(signature, expected):
+        if not fresh or not hmac.compare_digest(signature.encode(), expected.encode()):
             raise AuthenticationFailed('Invalid billing event signature or timestamp.')
         class EventSerializer(SettlementSerializer):
             invoice = serializers.UUIDField()

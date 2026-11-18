@@ -16,11 +16,18 @@ class PlanSerializer(serializers.ModelSerializer):
 def usage(account):
     from accounts.models import User
     from students.models import Student
+    from django.db.models import Sum
+    from .models import AssistantUsage
+    month = timezone.localdate().replace(day=1)
+    assistant = AssistantUsage.objects.filter(institution=account.institution,date__gte=month).aggregate(
+        requests=Sum('external_requests'), input_tokens=Sum('input_tokens'), output_tokens=Sum('output_tokens'))
     return {
         'users': User.objects.filter(institution=account.institution, is_active=True).count(),
         'students': Student.objects.filter(institution=account.institution, is_active=True).count(),
         'user_limit': account.plan.user_limit if account.plan else None,
         'student_limit': account.plan.student_limit if account.plan else None,
+        'ai_requests_this_month': assistant['requests'] or 0,
+        'ai_tokens_this_month': (assistant['input_tokens'] or 0)+(assistant['output_tokens'] or 0),
     }
 
 

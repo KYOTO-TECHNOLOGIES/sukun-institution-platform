@@ -188,3 +188,29 @@ class ControlPlaneTests(APITestCase):
         url = f'/api/saas/platform/organizations/{self.account.pk}/change-status/'
         self.assertEqual(self.client.post(url, {'status':'SUSPENDED'}).status_code, 400)
         self.assertEqual(self.client.post(url, {'status':'TRIAL','reason':'Renewing trial'}).status_code, 400)
+
+    def test_administrator_recovery_revokes_sessions_and_never_crosses_tenants(self):
+        old = self.bearer(self.admin)
+        url = f'/api/saas/platform/organizations/{self.account.pk}/reset-administrator/'
+        response = self.client.post(url, {'administrator':self.admin.pk,'temporary_password':'Recovered!Secure789', 'reason':'Identity verified through support'}, format='json')
+        self.assertEqual(response.status_code, 200, response.data)
+        self.admin.refresh_from_db()
+        self.assertTrue(self.admin.must_change_password)
+        self.assertEqual(old.get('/api/auth/me/').status_code, 401)
+        other = admin(institution('Other'),'+919876543214')
+        self.assertEqual(self.client.post(url, {'administrator':other.pk,'temporary_password':'Recovered!Secure987','reason':'Cross institution attempt'}, format='json').status_code,404)
+        self.assertNotIn('Recovered!', str(list(PlatformEvent.objects.values_list('detail',flat=True))))
+
+    def test_active_status_restores_a_deactivated_institution(self):
+        self.inst.is_active = False; self.inst.save()
+        response = self.client.post(f'/api/saas/platform/organizations/{self.account.pk}/change-status/', {'status':'ACTIVE','reason':'Institution owner verified reopening'})
+        self.assertEqual(response.status_code,200)
+        self.inst.refresh_from_db(); self.assertTrue(self.inst.is_active)
+
+    def test_suspended_users_cannot_open_notification_socket(self):
+        from asgiref.sync import async_to_sync
+        from notifications.consumers import authenticated_user
+        token = str(RefreshToken.for_user(self.admin).access_token)
+        self.assertIsNotNone(async_to_sync(authenticated_user)(token))
+        self.account.status = 'SUSPENDED'; self.account.save()
+        self.assertIsNone(async_to_sync(authenticated_user)(token))

@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from core.permissions import ADMIN_ROLES
 from .access import PlatformPermission, access_state, is_platform_admin
 from .models import Plan, OrganizationAccount, Invoice, PlatformEvent
@@ -67,6 +68,10 @@ class OrganizationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixi
 
     @transaction.atomic
     def perform_update(self, serializer):
+        # Lock the destination plan before the account, matching shared-plan updates.
+        # Re-read it so a concurrent plan edit cannot validate against stale limits.
+        if serializer.validated_data.get('plan'):
+            serializer.validated_data['plan'] = Plan.objects.select_for_update().get(pk=serializer.validated_data['plan'].pk)
         serializer.instance = OrganizationAccount.objects.select_for_update().get(pk=serializer.instance.pk)
         serializer.validate(serializer.validated_data)
         serializer.save()
@@ -85,10 +90,49 @@ class OrganizationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixi
         previous = account.status
         account.status = state
         account.suspension_reason = serializer.validated_data['reason'] if state in {'SUSPENDED', 'CANCELLED'} else ''
+        if state == 'ACTIVE' and not account.institution.is_active:
+            account.institution.is_active = True
+            account.institution.save(update_fields=['is_active', 'updated_at'])
         account.save()
         PlatformEvent.objects.create(account=account, actor=request.user, action='organization.status_changed',
             detail=f'{previous} → {state}: {serializer.validated_data["reason"]}')
         return Response(OrganizationSerializer(account).data)
+
+    @action(detail=True, methods=['get'])
+    def administrators(self, request, pk=None):
+        account = self.get_object()
+        return Response(list(account.institution.users.filter(user_type='INSTITUTION_ADMIN',is_superuser=False)
+            .values('id','first_name','last_name','phone_number','is_active').order_by('id')[:100]))
+
+    @action(detail=True, methods=['post'], url_path='reset-administrator')
+    @transaction.atomic
+    def reset_administrator(self, request, pk=None):
+        from accounts.models import User
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+        account = OrganizationAccount.objects.select_for_update().get(pk=self.get_object().pk)
+        class ResetSerializer(serializers.Serializer):
+            administrator = serializers.IntegerField()
+            temporary_password = serializers.CharField(min_length=12, max_length=128, trim_whitespace=False)
+            reason = serializers.CharField(min_length=5, max_length=500)
+            reactivate = serializers.BooleanField(default=False)
+        serializer = ResetSerializer(data=request.data); serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        user = get_object_or_404(User.objects.select_for_update(), pk=data['administrator'],
+            institution=account.institution, user_type='INSTITUTION_ADMIN', is_superuser=False)
+        try: validate_password(data['temporary_password'],user)
+        except DjangoValidationError as exc: raise ValidationError({'temporary_password':exc.messages})
+        if user.check_password(data['temporary_password']):
+            raise ValidationError({'temporary_password':'Choose a different password.'})
+        user.set_password(data['temporary_password']); user.must_change_password = True
+        if data['reactivate']: user.is_active = True
+        user.save()
+        for token in OutstandingToken.objects.filter(user=user):
+            BlacklistedToken.objects.get_or_create(token=token)
+        PlatformEvent.objects.create(account=account, actor=request.user, action='administrator.credentials_reset',
+            detail=f'Administrator #{user.pk}; reactivation requested: {data["reactivate"]}. {data["reason"]}')
+        return Response({'detail':'Temporary password set. Existing sessions are invalidated; the administrator must change this password at sign-in.'})
 
 
 class InvoiceViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -184,3 +228,10 @@ class OwnInvoiceView(APIView):
         account = own_account(request.user)
         invoice = get_object_or_404(Invoice, account=account, pk=pk)
         return render(request, 'saas/invoice.html', {'invoice': invoice})
+
+
+class OwnInvoiceList(ListAPIView):
+    serializer_class = InvoiceSerializer
+
+    def get_queryset(self):
+        return Invoice.objects.filter(account=own_account(self.request.user)).select_related('account__institution')
