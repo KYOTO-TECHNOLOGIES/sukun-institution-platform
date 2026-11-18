@@ -8,6 +8,7 @@ from core.health import health
 from core.media import ProtectedMediaView
 
 urlpatterns = [
+    path('api/saas/', include('saas.urls')),
     path('api/notifications/', include('notifications.urls')),
     path('health/', health),
     path('media/<path:filename>', ProtectedMediaView.as_view()),

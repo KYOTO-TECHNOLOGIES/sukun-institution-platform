@@ -2,6 +2,9 @@ from core.permissions import ADMIN_ROLES, ROLE_MODULES, can_access
 
 
 def page_permissions(user):
+    from saas.access import is_platform_admin
+    if is_platform_admin(user):
+        return {'dashboard_read': True, 'platform_read': True}
     admin = user.is_superuser or user.user_type in ADMIN_ROLES
     read, write = ROLE_MODULES.get(user.user_type, (set(), set()))
     modules = {
@@ -20,5 +23,7 @@ def page_permissions(user):
         result[key + '_read'] = can_access(user,module)
         result[key + '_write'] = can_access(user,module,True)
     result['leave_read']=can_access(user,'staff')
+    result['subscription_read'] = user.user_type in ADMIN_ROLES and bool(user.institution_id)
+    result['hierarchy_read'] = can_access(user, 'academics')
     result['leave_write']=can_access(user,'staff',True) or user.user_type=='TEACHER'
     return result

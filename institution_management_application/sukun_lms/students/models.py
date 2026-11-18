@@ -6,6 +6,11 @@ from core.models import BaseModel
 
 
 class Student(BaseModel):
+    def save(self, *args, **kwargs):
+        from saas.quotas import check_seat
+        with check_seat(self, 'student'):
+            return super().save(*args, **kwargs)
+
     GENDER_CHOICES = [('MALE', 'Male'), ('FEMALE', 'Female')]
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='student_profile')

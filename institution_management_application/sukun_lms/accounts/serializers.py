@@ -84,6 +84,17 @@ class UserSerializer(serializers.ModelSerializer):
 
 class AuthenticatedUserSerializer(serializers.ModelSerializer):
     page_permission = serializers.SerializerMethodField()
+    is_platform_admin = serializers.SerializerMethodField()
+    organization_access = serializers.SerializerMethodField()
+    institution_name = serializers.CharField(source='institution.name', read_only=True, default='')
+
+    def get_is_platform_admin(self, user):
+        from saas.access import is_platform_admin
+        return is_platform_admin(user)
+
+    def get_organization_access(self, user):
+        from saas.access import user_access
+        return user_access(user)
 
     def get_page_permission(self, user):
         from .permissions_map import page_permissions
@@ -96,6 +107,10 @@ class AuthenticatedUserSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'page_permission',
+            'is_platform_admin',
+            'organization_access',
+            'institution_name',
+            'must_change_password',
             'phone_number',
             'email',
             'first_name',

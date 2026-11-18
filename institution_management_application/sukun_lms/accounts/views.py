@@ -167,7 +167,9 @@ class ChangePasswordView(APIView):
         try: validate_password(password,request.user)
         except DjangoValidationError as exc: raise ValidationError({'new_password':exc.messages})
         with transaction.atomic():
-            request.user.set_password(password); request.user.save()
+            request.user.set_password(password)
+            request.user.must_change_password = False
+            request.user.save()
             for token in OutstandingToken.objects.filter(user=request.user):
                 BlacklistedToken.objects.get_or_create(token=token)
         response=Response({'message':'Password changed. Sign in again with the new password.'})

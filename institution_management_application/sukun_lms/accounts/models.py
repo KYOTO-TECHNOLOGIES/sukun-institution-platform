@@ -37,6 +37,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_phone_verified = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    must_change_password = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -74,5 +75,7 @@ class User(AbstractBaseUser, PermissionsMixin):
                 raise ValidationError({'phone_number': exc.messages}) from exc
 
     def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
+        from saas.quotas import check_seat
+        with check_seat(self, 'user'):
+            self.full_clean()
+            return super().save(*args, **kwargs)

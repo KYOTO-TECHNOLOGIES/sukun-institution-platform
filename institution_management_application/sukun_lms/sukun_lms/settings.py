@@ -27,7 +27,11 @@ SECRET_KEY = env(
     default='django-insecure-change-me-before-production',
 )
 DEBUG = env('DEBUG')
-ALLOW_INSTITUTION_REGISTRATION = env.bool('ALLOW_INSTITUTION_REGISTRATION', default=DEBUG)
+ALLOW_INSTITUTION_REGISTRATION = env.bool('ALLOW_INSTITUTION_REGISTRATION', default=False)
+BILLING_BUSINESS_NAME = env('BILLING_BUSINESS_NAME', default='Sukun · Kyoto')
+BILLING_BUSINESS_ADDRESS = env('BILLING_BUSINESS_ADDRESS', default='')
+BILLING_SUPPORT_EMAIL = env('BILLING_SUPPORT_EMAIL', default='')
+BILLING_TAX_ID = env('BILLING_TAX_ID', default='')
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
@@ -44,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'core',
+    'saas.apps.SaasConfig',
     'accounts',
     'administration',
     'institutions',

@@ -12,7 +12,8 @@ def authenticated_user(raw_token):
         auth = JWTAuthentication()
         token = auth.get_validated_token(raw_token)
         user = auth.get_user(token)
-        return user if user.is_active and user.institution_id else None
+        from saas.access import user_access
+        return user if user.is_active and user.institution_id and not user.must_change_password and user_access(user)['allowed'] else None
     except Exception:
         return None
 

@@ -21,4 +21,7 @@ class CookieJWTAuthentication(JWTAuthentication):
         if header is None:
             SessionAuthentication().enforce_csrf(request)
         validated_token = self.get_validated_token(raw_token)
-        return self.get_user(validated_token), validated_token
+        user = self.get_user(validated_token)
+        from saas.access import enforce_request_access
+        enforce_request_access(user, request.path)
+        return user, validated_token
