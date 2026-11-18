@@ -24,13 +24,14 @@ const failure = 'Could not save that change. Please try again.';
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
     const { userData } = useContext(AuthContext);
     const userId = userData?.id;
+    const enabled = !!userId && !!userData?.institution && !userData?.is_platform_admin && !userData?.must_change_password && userData?.organization_access?.allowed !== false;
     const cache = useQueryClient();
     const navigate = useNavigate();
     const navigateRef = useRef(navigate);
     navigateRef.current = navigate;
     const [connection, setConnection] = useState<Connection>('connecting');
     const query = useQuery<Summary>({
-        queryKey: ['notifications', userId, 'summary'], enabled: !!userId,
+        queryKey: ['notifications', userId, 'summary'], enabled,
         queryFn: () => authAxios.get(endpoint + 'summary/').then(r => r.data),
         staleTime: 0, refetchInterval: 30000, retry: 1,
     });
@@ -59,7 +60,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }, [cache, userId, refresh]);
 
     useEffect(() => {
-        if (!userId) return;
+        if (!enabled) return;
         let stopped = false;
         let socket: WebSocket | undefined;
         let reconnect: ReturnType<typeof setTimeout> | undefined;
@@ -141,7 +142,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             document.removeEventListener('visibilitychange', visible);
             window.removeEventListener('online', visible);
         };
-    }, [userId, cache, refresh]);
+    }, [userId, enabled, cache, refresh]);
 
     return <NotificationContext.Provider value={{ summary: query.data, connection, error: query.isError, refresh, read, readAll, savePreferences }}>{children}</NotificationContext.Provider>;
 }

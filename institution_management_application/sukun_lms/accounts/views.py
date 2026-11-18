@@ -86,6 +86,7 @@ class LoginView(CsrfProtectedAPIView):
 
 
 class RefreshView(CsrfProtectedAPIView):
+    throttle_scope = 'refresh'
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
 
@@ -155,6 +156,9 @@ class DirectoryView(APIView):
 
 
 class ChangePasswordView(APIView):
+    from .throttles import PasswordChangeThrottle
+    throttle_classes = [PasswordChangeThrottle]
+
     def post(self,request):
         from django.contrib.auth.password_validation import validate_password
         from django.core.exceptions import ValidationError as DjangoValidationError
@@ -164,6 +168,8 @@ class ChangePasswordView(APIView):
         if not request.user.check_password(request.data.get('current_password','')):
             raise ValidationError({'current_password':'Current password is incorrect.'})
         password=request.data.get('new_password','')
+        if request.user.check_password(password):
+            raise ValidationError({'new_password':'Choose a password different from your current password.'})
         try: validate_password(password,request.user)
         except DjangoValidationError as exc: raise ValidationError({'new_password':exc.messages})
         with transaction.atomic():
