@@ -8,6 +8,7 @@ const ResourcePage = lazy(() => import('../workspace/ResourcePage'));
 import NotificationsPage from '../workspace/Notifications';
 const Dashboard = lazy(() => import('../workspace/Dashboard'));
 const PlatformConsole = lazy(() => import('../workspace/PlatformConsole'));
+const InstitutionMap = lazy(() => import('../workspace/InstitutionMap'));
 const Subscription = lazy(() => import('../workspace/Subscription'));
 const AccountPage = lazy(() => import('../workspace/AccountPage'));
 const StudentDetail = lazy(() => import('../workspace/StudentProfile'));
@@ -26,6 +27,7 @@ const AttendanceList = lazy(() => import('../pages/Attendance/List'));
 const MalpracticeList = lazy(() => import('../pages/Malpractice/List'));
 
 const contentRoutes = [
+    {path:'/hierarchy',element:<InstitutionMap />,exact:true,permissionKey:'hierarchy_read'},
     {path:'/platform',element:<PlatformConsole />,exact:true,permissionKey:'platform_read'},
     {path:'/platform/:section',element:<PlatformConsole />,exact:true,permissionKey:'platform_read'},
     {path:'/subscription',element:<Subscription />,exact:true,permissionKey:'subscription_read'},
