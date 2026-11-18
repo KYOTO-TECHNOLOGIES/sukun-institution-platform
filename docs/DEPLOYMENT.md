@@ -2,7 +2,7 @@
 
 The supported production topology is a same-origin React/Nginx frontend, Django/Daphne ASGI API, PostgreSQL database, and Redis for live notification rooms. Local development uses a separate SQLite database. SQLite is not the production database: row locks used for payment, enrollment, and capacity workflows require PostgreSQL.
 
-For `lms.sukunweb.com` on the four-core server alongside existing apps, follow [Shared-server deployment](SHARED_SERVER_DEPLOYMENT.md). It includes DNS, TLS bootstrapping without stopping Nginx, off-host image builds, resource caps, and operation without AI/payment integrations.
+For `lms.sukunweb.com` on the two-core server alongside existing apps, follow [Shared-server deployment](SHARED_SERVER_DEPLOYMENT.md). It includes DNS, TLS bootstrapping without stopping Nginx, off-host image builds, resource caps, and operation without AI/payment integrations.
 
 ## Local setup
 

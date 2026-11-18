@@ -24,7 +24,10 @@ services:
       retries: 10
   api:
     image: ${SUKUN_API_IMAGE:-sukun-platform-api:local}
-    build: ./institution_management_application/sukun_lms
+    build:
+      context: ./institution_management_application/sukun_lms
+      labels:
+        org.opencontainers.image.revision: ${SUKUN_SOURCE_REVISION:-development}
     restart: unless-stopped
     env_file: ./deploy/production.env
     environment:
@@ -47,7 +50,10 @@ services:
       retries: 3
   web:
     image: ${SUKUN_WEB_IMAGE:-sukun-platform-web:local}
-    build: ./sukun_lms_frontend
+    build:
+      context: ./sukun_lms_frontend
+      labels:
+        org.opencontainers.image.revision: ${SUKUN_SOURCE_REVISION:-development}
     restart: unless-stopped
     depends_on:
       - api

@@ -4,6 +4,8 @@ This runbook assumes an Ubuntu/Debian-style Linux host with the existing Nginx i
 
 Use `https://lms.sukunweb.com` on public port 443. The existing Nginx selects Sukun by hostname and proxies to `127.0.0.1:18080`. Sukun's frontend container then routes API and WebSocket requests to its private API container. PostgreSQL and Redis are private containers with no host ports. No `.deb` package is needed; the two application Docker images are the release artifacts.
 
+For automatic deployment on pushes to `production`, start with [Actions deployment](ACTIONS_DEPLOYMENT.md). It builds and tests on GitHub and transfers verified images using a dedicated SSH account. The manual off-host build/transfer steps below are an alternative; do not mix their directory layout with the automatic deployment layout.
+
 ## 1. Check the host before changing it
 
 Run these read-only commands on the server:
@@ -24,14 +26,14 @@ Ports 80 and 443 already belonging to **the existing Nginx** are expected. Add a
 
 Check that `18080` is unused in both the listener and container lists. If occupied, choose another free high port and change `SUKUN_HTTP_PORT` and the Nginx `proxy_pass` together. Do not stop the application that already owns a port. Database port 5432 and Redis port 6379 inside this Compose network can coexist with other projects because neither is published to the host.
 
-Four cores alone are not a blocker. Free memory, disk space, existing workloads and actual usage determine capacity. The optional `deploy/compose.small-server.yaml` starts with these **runtime caps**, not a benchmark or user-capacity promise:
+Two cores alone are not a blocker. Free memory, disk space, existing workloads and actual usage determine capacity. The optional `deploy/compose.small-server.yaml` starts with these **runtime caps**, not a benchmark or user-capacity promise:
 
-- API: 1 CPU, 768 MiB; one Daphne process.
-- PostgreSQL: 0.75 CPU, 768 MiB.
-- Redis: 0.25 CPU, 128 MiB, with a 64 MB data limit and no eviction.
-- Frontend Nginx: 0.25 CPU, 128 MiB.
+- API: 0.75 CPU, 768 MiB; one Daphne process.
+- PostgreSQL: 0.40 CPU, 768 MiB.
+- Redis: 0.10 CPU, 128 MiB, with a 64 MB data limit and no eviction.
+- Frontend Nginx: 0.10 CPU, 128 MiB.
 
-These total 2.25 CPU cores and 1.75 GiB of container memory. Budget roughly 2.5 GiB of currently available RAM for an initial small deployment, including operating headroom, while preserving the existing apps' peak requirements. This is a starting operational allowance, not measured application capacity. With only 4 GiB total RAM and two busy apps, there may be insufficient headroom. Do not deploy merely because the machine has four cores.
+These total 1.35 CPU cores and 1.75 GiB of container memory. Budget roughly 2.5 GiB of currently available RAM for an initial small deployment, including operating headroom, while preserving the existing apps' peak requirements. This is a starting operational allowance, not measured application capacity. With only 4 GiB total RAM and two busy apps, there may be insufficient headroom. Do not deploy merely because the machine has two cores.
 
 The override disables additional swap for these containers and rotates their Docker logs. It does not cap image builds, migrations outside these services, disk/database/media growth, shared host Nginx, backups, or the other applications. A memory cap can terminate Sukun processes if undersized. Monitor restarts, Redis capacity, disk, latency and peak load; tune or move Sukun to a separate VPS if headroom is inadequate. Containers reduce conflicts but cannot guarantee zero impact on a shared host.
 
@@ -103,7 +105,7 @@ Compose forces `DEBUG=False` and supplies the private PostgreSQL URL. Keep AI an
 
 ## 4. Build elsewhere, then transfer the images
 
-Avoid running the frontend compiler on the busy four-core production host. On another Docker-equipped machine or CI runner, build from the **same source revision** you copied to the server. This example targets a Linux x86_64 server (`uname -m` reports `x86_64`); use `linux/arm64` instead for an ARM64 host.
+Avoid running the frontend compiler on the busy two-core production host. On another Docker-equipped machine or CI runner, build from the **same source revision** you copied to the server. This example targets a Linux x86_64 server (`uname -m` reports `x86_64`); use `linux/arm64` instead for an ARM64 host.
 
 ```sh
 docker buildx build --platform linux/amd64 --load -t sukun-platform-api:release-1 institution_management_application/sukun_lms
@@ -188,7 +190,7 @@ Open `https://lms.sukunweb.com`, sign in with the new software administrator and
 
 For institutions you are operating without subscription billing, change the organization from TRIAL to **ACTIVE**, leave the paid-through date empty, and turn off overdue enforcement and suspension after payment failure. Record the reason for the access decision. A newly provisioned organization starts as a timed trial, so skipping this step would eventually restrict it even without a payment gateway. Choose seat limits appropriate to the intended institution. No invoice or payment-provider setup is necessary for this mode.
 
-Verify login/logout, a reversible institution workflow, protected attachments, notification delivery, password recovery, and both existing applications. Monitor CPU/memory/restarts and disk while testing real workloads before inviting all users. The four-core profile has not been load-tested on your server.
+Verify login/logout, a reversible institution workflow, protected attachments, notification delivery, password recovery, and both existing applications. Monitor CPU/memory/restarts and disk while testing real workloads before inviting all users. The two-core profile has not been load-tested on your server.
 
 ## Backups, updates and rollback
 

@@ -58,7 +58,9 @@ Institution boundaries are enforced by the API, including related objects. Sensi
 
 The original queue project remains untouched and is excluded from this repository. Its templates informed the initial application; the new workspace uses the Sukun visual design.
 
-For the shared four-core production server and `lms.sukunweb.com`, use the [deployment runbook](docs/SHARED_SERVER_DEPLOYMENT.md). It includes private-port isolation, resource caps, off-host image builds, and Nginx/TLS setup alongside existing apps.
+Push to the **production** branch to test, build and deploy through GitHub Actions. Builds run on GitHub; a dedicated SSH identity updates only the Sukun project on the server. Follow [Actions deployment](docs/ACTIONS_DEPLOYMENT.md) for the one-time server/secrets setup, DNS, updates and recovery. No local Docker installation or Debian application package is needed.
+
+For the shared two-core production server and `lms.sukunweb.com`, use the [deployment runbook](docs/SHARED_SERVER_DEPLOYMENT.md). It includes private-port isolation, resource caps, off-host image builds, and Nginx/TLS setup alongside existing apps.
 
 ## Checks
 

@@ -1,0 +1,66 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [production]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sukun-production-release
+  cancel-in-progress: false
+
+jobs:
+  verified-release:
+    uses: ./.github/workflows/ci.yml
+    with:
+      package_release: true
+      architecture: amd64
+
+  deploy:
+    needs: verified-release
+    if: github.ref == 'refs/heads/production' && vars.SUKUN_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: https://lms.sukunweb.com
+    steps:
+      - name: Download the tested release from this run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          artifact-ids: ${{ needs.verified-release.outputs.artifact_id }}
+          path: release
+          merge-multiple: true
+      - name: Configure dedicated SSH identity
+        env:
+          DEPLOY_KEY: ${{ secrets.SUKUN_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.SUKUN_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_KEY"
+          test -n "$KNOWN_HOSTS"
+          install -d -m 700 "$HOME/.ssh"
+          umask 077
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/sukun_deploy"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/sukun_known_hosts"
+          ssh-keygen -y -f "$HOME/.ssh/sukun_deploy" > /dev/null
+      - name: Transfer and deploy Sukun only
+        env:
+          RELEASE_ID: ${{ github.sha }}-amd64-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_ID" =~ ^[0-9a-f]{40}-amd64-[0-9]+-[0-9]+$ ]]
+          cd release
+          sha256sum --check SHA256SUMS
+          SSH_OPTIONS=(-i "$HOME/.ssh/sukun_deploy" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/sukun_known_hosts" -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=5)
+          TARGET=sukun-deploy@187.127.171.93
+          ssh "${SSH_OPTIONS[@]}" "$TARGET" "mkdir -m 700 /var/lib/sukun/incoming/$RELEASE_ID"
+          scp "${SSH_OPTIONS[@]}" source.tar.gz images.tar.gz images.env release.json SHA256SUMS DEPLOY.md "$TARGET:/var/lib/sukun/incoming/$RELEASE_ID/"
+          ssh "${SSH_OPTIONS[@]}" "$TARGET" "sudo -n /usr/local/sbin/sukun-deploy $RELEASE_ID"
+          printf '\nDeployed commit `%s` to [lms.sukunweb.com](https://lms.sukunweb.com).\n' "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove runner SSH identity
+        if: always()
+        run: rm -f "$HOME/.ssh/sukun_deploy" "$HOME/.ssh/sukun_known_hosts"
