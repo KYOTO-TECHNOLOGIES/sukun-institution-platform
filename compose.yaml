@@ -23,6 +23,7 @@ services:
       timeout: 5s
       retries: 10
   api:
+    image: ${SUKUN_API_IMAGE:-sukun-platform-api:local}
     build: ./institution_management_application/sukun_lms
     restart: unless-stopped
     env_file: ./deploy/production.env
@@ -45,12 +46,13 @@ services:
       timeout: 5s
       retries: 3
   web:
+    image: ${SUKUN_WEB_IMAGE:-sukun-platform-web:local}
     build: ./sukun_lms_frontend
     restart: unless-stopped
     depends_on:
       - api
     ports:
-      - "127.0.0.1:8080:80"
+      - "127.0.0.1:${SUKUN_HTTP_PORT:-8080}:80"
     volumes:
       - static_data:/static:ro
 volumes:

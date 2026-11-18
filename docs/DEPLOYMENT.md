@@ -2,6 +2,8 @@
 
 The supported production topology is a same-origin React/Nginx frontend, Django/Daphne ASGI API, PostgreSQL database, and Redis for live notification rooms. Local development uses a separate SQLite database. SQLite is not the production database: row locks used for payment, enrollment, and capacity workflows require PostgreSQL.
 
+For `lms.sukunweb.com` on the four-core server alongside existing apps, follow [Shared-server deployment](SHARED_SERVER_DEPLOYMENT.md). It includes DNS, TLS bootstrapping without stopping Nginx, off-host image builds, resource caps, and operation without AI/payment integrations.
+
 ## Local setup
 
 Install Python 3.13 and Node.js 22, then run from the repository root:
@@ -29,12 +31,12 @@ docker compose --env-file deploy/production.env build
 docker compose --env-file deploy/production.env up -d db redis
 docker compose --env-file deploy/production.env run --rm api python manage.py migrate --noinput
 docker compose --env-file deploy/production.env run --rm api python manage.py collectstatic --noinput
-docker compose --env-file deploy/production.env run --rm api python manage.py createsuperuser
+docker compose --env-file deploy/production.env run --rm api python manage.py create_platform_admin --phone +YOUR_REAL_PHONE --name "Software administrator"
 docker compose --env-file deploy/production.env run --rm api python manage.py check --deploy
 docker compose --env-file deploy/production.env up -d
 ```
 
-Use the Django admin to establish the first institution and administrator, or explicitly enable institution registration during controlled onboarding. Disable public registration when onboarding is complete. The standard application admin role does not grant Django admin access.
+Use the software administrator to sign into `/platform` and create the first institution and its institution administrator. Keep public registration disabled for operator-managed onboarding. See [Platform operations](PLATFORM_OPERATIONS.md) for trial activation, access decisions and credential recovery. The institution administrator does not receive Django superuser privileges.
 
 Health endpoint: `/health/`. Logs go to stdout/stderr. Uploaded files require authenticated ownership checks and are served as attachments. Nginx must not directly expose the media volume.
 

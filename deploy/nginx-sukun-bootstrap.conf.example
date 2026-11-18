@@ -1,0 +1,16 @@
+# Temporary HTTP-only site for certbot webroot validation.
+# Add as its own host Nginx http {} include. Existing sites stay in place.
+server {
+    listen 80;
+    server_name lms.sukunweb.com;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/sukun-acme;
+        default_type text/plain;
+        try_files $uri =404;
+    }
+    location / {
+        default_type text/plain;
+        return 503 "Sukun HTTPS setup is in progress.\n";
+    }
+}

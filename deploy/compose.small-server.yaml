@@ -1,0 +1,35 @@
+# Optional starting caps for a lightly loaded deployment on a shared host.
+# Measure available memory and load first; these are not a capacity guarantee.
+# Use with: -f compose.yaml -f deploy/compose.small-server.yaml
+x-small-logging: &small-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  api:
+    cpus: "1.0"
+    mem_limit: 768m
+    memswap_limit: 768m
+    pids_limit: 128
+    logging: *small-logging
+  db:
+    cpus: "0.75"
+    mem_limit: 768m
+    memswap_limit: 768m
+    pids_limit: 128
+    logging: *small-logging
+  redis:
+    cpus: "0.25"
+    mem_limit: 128m
+    memswap_limit: 128m
+    pids_limit: 64
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "64mb", "--maxmemory-policy", "noeviction"]
+    logging: *small-logging
+  web:
+    cpus: "0.25"
+    mem_limit: 128m
+    memswap_limit: 128m
+    pids_limit: 64
+    logging: *small-logging

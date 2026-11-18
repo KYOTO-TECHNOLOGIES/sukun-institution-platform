@@ -2,6 +2,12 @@
 
 Local checks use an isolated demo database and synthetic records. No real institution data was published.
 
+## Shared-server deployment preparation (2026-11-18)
+
+The full backend suite passes **111 tests**, including a new HTTPS/custom-port flow with prefixed cookies, real CSRF enforcement, refresh/logout, foreign-origin rejection and preservation of another application's cookies. Three targeted browser journeys pass, including a regression proving an unrelated `csrftoken` cookie cannot overwrite Sukun's explicit CSRF header. TypeScript checking and the production frontend build pass. The Compose YAML files parse successfully.
+
+Deployment templates now cover `lms.sukunweb.com`, a configurable loopback port, separately tagged build images, and optional runtime resource/logging limits. Docker Engine and host Nginx are unavailable locally, so Compose merging/startup, certificate issuance, existing-site compatibility and the four-core resource profile still require the actual server checks in [Shared-server deployment](SHARED_SERVER_DEPLOYMENT.md). No DNS, certificate, firewall or remote server changes were made.
+
 ## Platform, billing, hierarchy, and assistant (2026-11-18)
 
 - Backend: **110 tests pass locally**. The 40 SaaS tests also pass after the final subscription-locking refinement. Coverage includes operator/tenant isolation, related-object boundaries, trial/grace expiry, suspension, seat limits, immutable invoice snapshots, idempotent settlements, signed webhook rejection/replay behavior, administrator recovery and session revocation, hierarchy permissions, assistant consent/quotas/privacy, and notification access after restriction.
