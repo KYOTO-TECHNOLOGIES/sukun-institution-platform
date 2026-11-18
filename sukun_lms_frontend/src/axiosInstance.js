@@ -45,7 +45,9 @@ const authAxiosFileUpload = axios.create({
 let csrfPromise;
 const clients = [publicAxios, publicAxiosFileUpload, authAxios, authAxiosForCSV, authAxiosFileUpload];
 for (const client of clients) {
-    client.defaults.xsrfCookieName = 'csrftoken';
+    // The endpoint supplies our token. Never let another app's csrftoken cookie
+    // overwrite this header when several applications share a hostname.
+    client.defaults.xsrfCookieName = undefined;
     client.defaults.xsrfHeaderName = 'X-CSRFToken';
     client.interceptors.request.use(async (config) => {
         if (!['get', 'head', 'options'].includes((config.method || 'get').toLowerCase())) {

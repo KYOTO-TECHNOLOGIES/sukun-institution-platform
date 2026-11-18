@@ -175,8 +175,8 @@ SIMPLE_JWT = {
 }
 
 JWT_AUTH = {
-    'ACCESS_COOKIE_NAME': 'access_token',
-    'REFRESH_COOKIE_NAME': 'refresh_token',
+    'ACCESS_COOKIE_NAME': env('JWT_ACCESS_COOKIE_NAME', default='access_token'),
+    'REFRESH_COOKIE_NAME': env('JWT_REFRESH_COOKIE_NAME', default='refresh_token'),
     'COOKIE_DOMAIN': env('JWT_COOKIE_DOMAIN', default=None),
     'COOKIE_PATH': '/',
     'COOKIE_SECURE': env.bool('JWT_COOKIE_SECURE', default=not DEBUG),
@@ -184,6 +184,8 @@ JWT_AUTH = {
     'COOKIE_SAMESITE': env('JWT_COOKIE_SAMESITE', default='Lax'),
 }
 
+CSRF_COOKIE_NAME = env('CSRF_COOKIE_NAME', default='csrftoken')
+SESSION_COOKIE_NAME = env('SESSION_COOKIE_NAME', default='sessionid')
 CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=not DEBUG)
 SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=not DEBUG)
 

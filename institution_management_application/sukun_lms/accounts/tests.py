@@ -1,7 +1,8 @@
 from django.conf import settings
+from django.test import override_settings
 
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 
 from .models import User
 
@@ -19,6 +20,40 @@ class AuthenticationAPITests(APITestCase):
         self.refresh_url = "/api/auth/refresh/"
         self.logout_url = "/api/auth/logout/"
         self.me_url = "/api/auth/me/"
+
+    def test_named_cookies_on_https_custom_port_preserve_other_app_cookies(self):
+        jwt = {**settings.JWT_AUTH, 'ACCESS_COOKIE_NAME': 'sukun_access',
+               'REFRESH_COOKIE_NAME': 'sukun_refresh', 'COOKIE_SECURE': True}
+        with override_settings(JWT_AUTH=jwt, CSRF_COOKIE_NAME='sukun_csrf',
+                               CSRF_COOKIE_SECURE=True,
+                               ALLOWED_HOSTS=['203.0.113.10'],
+                               CSRF_TRUSTED_ORIGINS=['https://203.0.113.10:8443']):
+            client = APIClient(enforce_csrf_checks=True)
+            for name in ('access_token', 'refresh_token', 'csrftoken', 'sessionid'):
+                client.cookies[name] = 'another-application'
+            request = {'secure': True, 'HTTP_HOST': '203.0.113.10:8443',
+                       'HTTP_ORIGIN': 'https://203.0.113.10:8443'}
+            csrf = client.get('/api/auth/csrf/', **request)
+            self.assertIn('sukun_csrf', csrf.cookies)
+            self.assertTrue(csrf.cookies['sukun_csrf']['secure'])
+            request['HTTP_X_CSRFTOKEN'] = csrf.data['csrfToken']
+            credentials = {'phone_number': self.user.phone_number, 'password': self.password}
+            rejected = client.post(self.login_url, credentials, format='json',
+                                   **{**request, 'HTTP_ORIGIN': 'https://203.0.113.10:9443'})
+            self.assertEqual(rejected.status_code, 403)
+            login = client.post(self.login_url, credentials, format='json', **request)
+            self.assertEqual(login.status_code, 200, login.data)
+            self.assertTrue(login.cookies['sukun_access']['httponly'])
+            self.assertTrue(login.cookies['sukun_access']['secure'])
+            self.assertEqual(client.get(self.me_url, **request).status_code, 200)
+            self.assertEqual(client.post(self.refresh_url, {}, format='json', **request).status_code, 200)
+            logout = client.post(self.logout_url, {}, format='json', **request)
+            self.assertEqual(logout.status_code, 200)
+            self.assertEqual(int(logout.cookies['sukun_access']['max-age']), 0)
+            self.assertEqual(int(logout.cookies['sukun_refresh']['max-age']), 0)
+            for name in ('access_token', 'refresh_token', 'csrftoken', 'sessionid'):
+                self.assertNotIn(name, logout.cookies)
+                self.assertEqual(client.cookies[name].value, 'another-application')
 
     def test_login_returns_tokens_and_sets_cookies(self):
         response = self.client.post(

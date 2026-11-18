@@ -8,6 +8,7 @@ from channels.routing import URLRouter
 from channels.security.websocket import OriginValidator
 from channels.testing import WebsocketCommunicator
 from django.apps import apps
+from django.conf import settings
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import path
 from django.utils import timezone
@@ -248,7 +249,7 @@ class SocketTests(TransactionTestCase):
         self.application=OriginValidator(URLRouter([path('ws/notifications/',InboxConsumer.as_asgi())]),['http://localhost:5173'])
     def socket(self, token=None, origin='http://localhost:5173'):
         headers=[(b'origin',origin.encode())]
-        if token: headers.append((b'cookie',('access_token='+token).encode()))
+        if token: headers.append((b'cookie',(settings.JWT_AUTH['ACCESS_COOKIE_NAME']+'='+token).encode()))
         return WebsocketCommunicator(self.application,'/ws/notifications/',headers=headers)
     def test_cookie_auth_origin_validation_and_expired_tokens(self):
         expired=AccessToken.for_user(self.one)
