@@ -95,7 +95,7 @@ export const AuthContextProvider: FC<IAuthContextProviderProps> = ({ children })
 			settings_read: false,
 			settings_write: false,
 		};
-		setPermissions(profile.page_permission || derivedPermissions);
+		setPermissions(profile.page_permission || {dashboard_read:true});
 	}, []);
 
 	const setLogOut = useCallback(() => {
@@ -154,7 +154,7 @@ export const AuthContextProvider: FC<IAuthContextProviderProps> = ({ children })
 					settings_read: false,
 					settings_write: false,
 				};
-				setPermissions(profile.page_permission || derivedPermissions);
+				setPermissions(profile.page_permission || {dashboard_read:true});
 			} catch (err: any) {
 				console.error('[authContext] profile fetch failed:', err?.response?.status, err?.message);
 				setUser('');
@@ -172,6 +172,14 @@ export const AuthContextProvider: FC<IAuthContextProviderProps> = ({ children })
 		boot();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	useEffect(() => {
+        if (!userData?.id) return;
+        const refresh = () => { refreshProfile().catch(() => undefined); };
+        const timer = window.setInterval(refresh, 60000);
+        window.addEventListener('organization-access-changed', refresh);
+        return () => { window.clearInterval(timer); window.removeEventListener('organization-access-changed', refresh); };
+    }, [userData?.id, refreshProfile]);
 
 	const value = useMemo(
 		() => ({

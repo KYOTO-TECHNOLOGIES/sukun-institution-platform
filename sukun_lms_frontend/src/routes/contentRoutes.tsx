@@ -7,6 +7,8 @@ const ResourcePage = lazy(() => import('../workspace/ResourcePage'));
 
 import NotificationsPage from '../workspace/Notifications';
 const Dashboard = lazy(() => import('../workspace/Dashboard'));
+const PlatformConsole = lazy(() => import('../workspace/PlatformConsole'));
+const Subscription = lazy(() => import('../workspace/Subscription'));
 const AccountPage = lazy(() => import('../workspace/AccountPage'));
 const StudentDetail = lazy(() => import('../workspace/StudentProfile'));
 
@@ -24,6 +26,9 @@ const AttendanceList = lazy(() => import('../pages/Attendance/List'));
 const MalpracticeList = lazy(() => import('../pages/Malpractice/List'));
 
 const contentRoutes = [
+    {path:'/platform',element:<PlatformConsole />,exact:true,permissionKey:'platform_read'},
+    {path:'/platform/:section',element:<PlatformConsole />,exact:true,permissionKey:'platform_read'},
+    {path:'/subscription',element:<Subscription />,exact:true,permissionKey:'subscription_read'},
     {path:'/notifications',element:<NotificationsPage />,exact:true,permissionKey:'dashboard_read'},
     {path:'/account',element:<AccountPage />,exact:true,permissionKey:'dashboard_read'},
     {path:'/portal',element:<LearnerPortal />,exact:true,permissionKey:'portal_read'},
