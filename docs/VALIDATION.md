@@ -2,6 +2,21 @@
 
 Local checks use an isolated demo database and synthetic records. No real institution data was published.
 
+## Platform, billing, hierarchy, and assistant (2026-11-18)
+
+- Backend: **110 tests pass locally**. The 40 SaaS tests also pass after the final subscription-locking refinement. Coverage includes operator/tenant isolation, related-object boundaries, trial/grace expiry, suspension, seat limits, immutable invoice snapshots, idempotent settlements, signed webhook rejection/replay behavior, administrator recovery and session revocation, hierarchy permissions, assistant consent/quotas/privacy, and notification access after restriction.
+- Django configuration checks pass and `makemigrations --check --dry-run` reports no missing migrations.
+- Frontend TypeScript checking and the production build pass. Existing Bootstrap Sass deprecations, CSS-property warnings, and large legacy template bundles remain; the new hierarchy is a separate workspace route and the assistant reuses the accessible dialog components.
+- Browser: **all 32 Playwright end-to-end tests pass**. Login tests honor the real throttle and notification preference checks wait for persisted state. The two new control-plane journeys also pass after the final operator-navigation correction.
+- Visual review covers the software console, dimensional campus illustration, hierarchy and inspector, billing recovery, and mobile assistant/subscription. Browser checks cover the new operator onboarding-to-payment journey, mandatory password rotation, suspension/recovery, administrator session revocation, keyboard map navigation, table/search, and local assistant answers.
+- External AI tests use mocked provider responses and failures. No real model call or payment-provider transaction was made. The signed billing endpoint is a boundary for a trusted provider adapter, not a configured gateway.
+- The local database is SQLite. The new PostgreSQL/Redis/container paths have **not** been executed in this environment or submitted to CI in this change. Existing CI jobs are configured for those services; the older CI links below apply only to their earlier revisions. Validate the new migrations and concurrency behavior there before deployment.
+- Dependency audit: compatible updates and the UUID override were applied. The latest npm audit still reports **23 high findings** through the unpatched `picomatch` tooling chain. The earlier dependency totals below are historical. See [Platform operations](PLATFORM_OPERATIONS.md#deployment-and-remaining-operational-work) for scope, upstream references, and release follow-up.
+
+Production credentials, legal issuer settings, provider integration, TLS, backup restoration, monitoring, load testing, and institution acceptance remain deployment work. These local checks do not certify the application for every institution or jurisdiction. See [Platform operations](PLATFORM_OPERATIONS.md) for the new operating contract.
+
+## Earlier baseline (2026-11-07)
+
 - Backend: 49 security and business workflow tests pass locally, including stale-update regressions for payments and approvals. The same 49 tests pass on PostgreSQL in CI.
 - Frontend: full TypeScript check and production Vite build passed.
 - Browser: 14 end-to-end tests pass locally. Coverage includes all management pages/forms and API field/choice compatibility, role access, student submissions, mobile navigation, approved admission through certificate issuance, and collection/receipt/refund reconciliation.

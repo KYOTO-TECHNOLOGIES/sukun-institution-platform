@@ -17,6 +17,10 @@ Open **http://127.0.0.1:5173**. Generated demo credentials for all roles are in 
 
 For a step-by-step institution setup and daily operations walkthrough, read the [Operator guide](docs/USER_GUIDE.md).
 
+Software owners now have a separate **Platform console** at `/platform`: provision independent institutions and their administrators, manage plans and usage limits, run trials, issue printable invoices, record verified payment decisions, and suspend or restore organizations. Institution administrators have their own **Subscription & usage** page. See [Platform operations](docs/PLATFORM_OPERATIONS.md) for onboarding, signed billing integrations, administrator recovery, and deployment configuration. The local software-admin login is included in `.local/DEMO_ACCESS.md` after `python scripts/dev.py seed`.
+
+Use **Institution map** for the live React Flow hierarchy or its table alternative. The dashboard includes a record-backed setup checklist and reduced-motion-aware 3D campus artwork. **Ask Sukun** offers role-aware local help; optional OpenAI answers require deployment configuration, institution consent, and explicit selection in the chat panel.
+
 Click a record to explore its details. The **Quick view / Full page** control above each table remembers your preference. Quick view supports Escape to close and **Open full page**; dedicated record URLs can be bookmarked, and returning to the table keeps its search and page. Student history, learner records, exam students and subject schedules also support detail browsing. Use **Ctrl/Cmd + K** to find a workspace page, or the help icon for a short workspace guide.
 
 ## Live notifications
