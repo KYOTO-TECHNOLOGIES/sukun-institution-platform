@@ -1,0 +1,147 @@
+import {submitLogin} from './helpers';
+import {test,expect,Page} from '@playwright/test';
+import {readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {randomBytes} from 'node:crypto';
+const password=process.env.E2E_PASSWORD||JSON.parse(readFileSync(resolve('../.local/demo.json'),'utf8')).password;
+test.use({actionTimeout:15000});
+async function login(page:Page,phone:string,secret=password){
+    await page.goto('/login');
+    await page.getByLabel('Phone number',{exact:true}).fill(phone);
+    await page.getByLabel('Password',{exact:true}).fill(secret);
+    await submitLogin(page);
+    await expect(page).not.toHaveURL(/login/);
+}
+async function choose(page:Page,label:string,text:string){
+    await page.getByRole('combobox',{name:label,exact:true}).click();
+    await page.getByRole('listbox',{name:label+' options'}).getByRole('option',{name:text,exact:false}).click();
+}
+
+test('software operator provisions, invoices, and suspends an isolated organization',async({page,browser})=>{
+    test.setTimeout(180000);
+    const stamp=Date.now().toString();const name='Browser Institution '+stamp;const plan='Browser Plan '+stamp;
+    const phone='+919'+stamp.slice(-9);const temporary='Temp!'+randomBytes(18).toString('base64url');const permanent='Own!'+randomBytes(18).toString('base64url');
+    const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+    await login(page,'+919900009001');
+    await expect(page.getByRole('heading',{name:'Your institutions. One clear view.'})).toBeVisible();
+    await expect(page.getByRole('heading',{name:/A connected platform/})).toBeVisible();
+    await expect(page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Overview',exact:true})).toHaveAttribute('aria-current','page');
+    await page.getByRole('button',{name:'Jump to page',exact:true}).click();
+    await page.getByLabel('Search workspace pages').fill('Notifications');
+    await expect(page.getByRole('heading',{name:'No pages found'})).toBeVisible();
+    await page.getByRole('button',{name:'Close dialog',exact:true}).click();
+    await page.screenshot({path:'../.local/platform-console-desktop.png',fullPage:true});
+    await page.setViewportSize({width:390,height:844});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBeTruthy();
+    await page.setViewportSize({width:1440,height:1000});
+    await page.goto('/platform/plans');
+    await page.getByRole('button',{name:'Create plan',exact:true}).click();
+    await page.getByLabel('Plan name',{exact:true}).fill(plan);
+    await page.getByLabel('Monthly price',{exact:true}).fill('4500');
+    await page.getByRole('button',{name:'Save changes',exact:true}).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.getByRole('button',{name:'New organization',exact:true}).click();
+    for(const [label,value] of Object.entries({'Institution name':name,'Registration number':'BROWSER-'+stamp,'Institution / billing email':'org'+stamp+'@example.test','Institution phone':phone,'Address':'Browser verification campus','City':'Kozhikode','District / region':'Kozhikode','State / province':'Kerala','Postal code':'673001','Administrator first name':'Campus','Administrator last name':'Owner','Administrator login phone':phone,'Temporary password':temporary})){
+        await page.getByLabel(label,{exact:true}).fill(value);
+    }
+    await choose(page,'Subscription plan',plan);
+    await page.getByRole('button',{name:'Create organization & trial',exact:true}).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.goto('/platform/organizations');
+    await page.getByLabel('Search organizations').fill(name);
+    const orgRow=page.getByRole('row').filter({hasText:name});
+    await expect(orgRow).toBeVisible();
+    await orgRow.getByRole('button',{name:'Invoice',exact:true}).click();
+    await page.getByLabel('Description / service',{exact:true}).fill('Browser subscription verification');
+    await page.getByLabel('Subtotal',{exact:true}).fill('4500');
+    await page.getByLabel('Tax amount',{exact:true}).fill('810');
+    const end=new Date();end.setDate(end.getDate()+30);
+    await page.getByLabel('Service ends',{exact:true}).fill(end.toLocaleDateString('en-CA'));
+    await page.getByRole('button',{name:'Issue invoice',exact:true}).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.goto('/platform/invoices');
+    const invoiceRow=page.getByRole('row').filter({hasText:name});
+    await expect(invoiceRow).toContainText('5,310');
+    await invoiceRow.getByRole('button',{name:'Record decision'}).click();
+    await page.getByLabel('Unique bank / decision reference').fill('BROWSER-'+stamp);
+    await page.getByLabel('Verification notes / reason').fill('Synthetic test payment verified');
+    await page.getByRole('button',{name:'Record verified decision'}).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(invoiceRow).toContainText('paid');
+
+    const tenantContext=await browser.newContext({baseURL:process.env.E2E_BASE_URL||'http://127.0.0.1:5173'});const tenant=await tenantContext.newPage();
+    try{
+        await login(tenant,phone,temporary);
+        await expect(tenant).toHaveURL(/account/);
+        await tenant.getByLabel('Current password',{exact:true}).fill(temporary);
+        await tenant.getByLabel('New password',{exact:true}).fill(permanent);
+        await tenant.getByLabel('Confirm new password',{exact:true}).fill(permanent);
+        await tenant.getByRole('button',{name:'Update password'}).click();
+        await expect(tenant).toHaveURL(/login/);
+        await login(tenant,phone,permanent);
+        await expect(tenant.getByRole('heading',{name:'A good day starts with a clear picture.'})).toBeVisible();
+        expect((await tenant.request.get('/api/saas/platform/overview/')).status()).toBe(403);
+        await page.goto('/platform/organizations');await page.getByLabel('Search organizations').fill(name);
+        await orgRow.getByRole('button',{name:'Access',exact:true}).click();
+        await choose(page,'Organization status','SUSPENDED');
+        await page.getByLabel('Reason for this decision').fill('Browser test suspension for payment review');
+        await page.getByRole('button',{name:'Apply access decision'}).click();
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+        expect((await tenant.request.get('/api/academics/classes/')).status()).toBe(403);
+        await tenant.reload();
+        await expect(tenant.getByRole('heading',{name:'Your workspace needs attention.'})).toBeVisible();
+        await tenant.getByRole('link',{name:'Review subscription'}).click();
+        await expect(tenant.getByRole('heading',{name:'Workspace access needs attention'})).toBeVisible();
+        await expect(tenant.getByRole('row').filter({hasText:'Browser subscription verification'})).toContainText('paid');
+        await tenant.screenshot({path:'../.local/subscription-recovery.png',fullPage:true});
+        await orgRow.getByRole('button',{name:'Access',exact:true}).click();
+        await choose(page,'Organization status','ACTIVE');
+        await page.getByLabel('Reason for this decision').fill('Browser test restored after verification');
+        await page.getByRole('button',{name:'Apply access decision'}).click();
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+        expect((await tenant.request.get('/api/academics/classes/')).status()).toBe(200);
+        await orgRow.getByRole('button',{name:'Login recovery',exact:true}).click();
+        await choose(page,'Institution administrator',phone);
+        await page.getByLabel('New temporary password',{exact:true}).fill('Reset!'+randomBytes(18).toString('base64url'));
+        await page.getByLabel('Identity verification / reason').fill('Synthetic identity verification for browser coverage');
+        await page.getByRole('button',{name:'Set temporary password',exact:true}).click();
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+        expect((await tenant.request.get('/api/auth/me/')).status()).toBe(401);
+    }finally{await tenantContext.close();}
+    expect(errors).toEqual([]);
+});
+
+test('live hierarchy, local assistant, and mobile console are usable',async({page})=>{
+    const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+    await login(page,'+919900001001');
+    await page.goto('/hierarchy');
+    await expect(page.locator('.react-flow__node')).not.toHaveCount(0);
+    expect((await page.locator('.react-flow__controls-zoomin svg').boundingBox())?.width).toBeGreaterThan(0);
+    await expect(page.locator('.react-flow__minimap-node')).not.toHaveCount(0);
+    await page.locator('.react-flow__node[data-id^="c-"]').first().focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('link',{name:'Open full record'})).toBeVisible();
+    await page.screenshot({path:'../.local/institution-hierarchy-desktop.png',fullPage:true});
+    await page.getByRole('button',{name:'Hierarchy table',exact:true}).click();
+    await expect(page.getByRole('columnheader',{name:'Students / capacity'})).toBeVisible();
+    await page.getByLabel('Search hierarchy').fill('Grade 6');
+    await expect(page.getByRole('button',{name:/Grade 6/})).toBeVisible();
+    await expect(page.getByRole('button',{name:/Grade 7/})).toHaveCount(0);
+    await page.getByRole('button',{name:'Open Sukun assistant'}).click();
+    await page.getByRole('button',{name:'How do I mark attendance?',exact:true}).click();
+    await expect(page.locator('.assistant-message.assistant')).toContainText('choose a class division');
+    await expect(page.getByRole('link',{name:'Student attendance',exact:true}).last()).toBeVisible();
+    await page.screenshot({path:'../.local/assistant-desktop.png',fullPage:true});
+    await page.setViewportSize({width:390,height:844});
+    const bounds=await page.getByRole('dialog').boundingBox();
+    expect(bounds?.x).toBeGreaterThanOrEqual(0);
+    expect((bounds?.x||0)+(bounds?.width||0)).toBeLessThanOrEqual(390);
+    await page.screenshot({path:'../.local/assistant-mobile.png',fullPage:true});
+    await page.getByRole('button',{name:'Close dialog',exact:true}).click();
+    await page.setViewportSize({width:390,height:844});
+    await page.goto('/subscription');
+    await expect(page.getByRole('heading',{name:'A clear view of your subscription.'})).toBeVisible();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBeTruthy();
+    await page.screenshot({path:'../.local/subscription-mobile.png',fullPage:true});
+    expect(errors).toEqual([]);
+});

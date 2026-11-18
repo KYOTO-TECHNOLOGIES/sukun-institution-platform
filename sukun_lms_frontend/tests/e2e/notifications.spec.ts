@@ -45,7 +45,11 @@ test('addressed notices arrive live, read state syncs across tabs, and popup pre
         await expect(page.getByRole('button', { name: 'Mark read: ' + title, exact: true })).toHaveCount(0);
         await expect(second.getByRole('button', { name: 'Mark read: ' + title, exact: true })).toHaveCount(0);
         await second.close();
-        await page.getByRole('switch', { name: /Important popups/ }).uncheck();
+        // Preferences are persisted before the controlled switch updates.
+        const popupSwitch = page.getByRole('switch', { name: /Important popups/ });
+        await expect(popupSwitch).toBeChecked();
+        await popupSwitch.click();
+        await expect(popupSwitch).not.toBeChecked();
         await expect(page.getByRole('switch', { name: /Important popups/ })).toBeEnabled();
         await page.reload();
         await expect(page.getByRole('switch', { name: /Important popups/ })).not.toBeChecked();

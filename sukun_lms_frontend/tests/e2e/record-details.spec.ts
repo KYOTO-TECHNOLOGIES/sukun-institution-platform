@@ -1,3 +1,4 @@
+import {submitLogin} from './helpers';
 import { test, expect, Page } from '@playwright/test';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -9,7 +10,7 @@ async function login(page: Page, phone = '+919900001001') {
     await page.goto('/login');
     await page.getByLabel('Phone number', { exact: true }).fill(phone);
     await page.getByLabel('Password', { exact: true }).fill(password);
-    await page.getByRole('button', { name: 'Sign in →', exact: true }).click();
+    await submitLogin(page);
     await expect(page).not.toHaveURL(/login/);
 }
 
