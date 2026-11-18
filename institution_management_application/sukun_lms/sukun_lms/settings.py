@@ -32,6 +32,7 @@ BILLING_BUSINESS_NAME = env('BILLING_BUSINESS_NAME', default='Sukun · Kyoto')
 BILLING_BUSINESS_ADDRESS = env('BILLING_BUSINESS_ADDRESS', default='')
 BILLING_SUPPORT_EMAIL = env('BILLING_SUPPORT_EMAIL', default='')
 BILLING_TAX_ID = env('BILLING_TAX_ID', default='')
+BILLING_WEBHOOK_SECRET = env('BILLING_WEBHOOK_SECRET', default='')
 OPENAI_API_KEY = env('OPENAI_API_KEY', default='')
 ASSISTANT_MODEL = env('ASSISTANT_MODEL', default='')
 ASSISTANT_DAILY_LIMIT = env.int('ASSISTANT_DAILY_LIMIT', default=100)
@@ -154,7 +155,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'core.pagination.BoundedPagination',
     'PAGE_SIZE': 20,
-    'DEFAULT_THROTTLE_RATES': {'login': '20/min', 'registration': '10/hour', 'assistant': '60/hour', 'refresh':'60/min', 'password_change':'10/hour'},
+    'DEFAULT_THROTTLE_RATES': {'login': '20/min', 'registration': '10/hour', 'assistant': '60/hour', 'refresh':'60/min', 'password_change':'10/hour', 'billing_webhook':'120/min'},
     'NUM_PROXIES': env.int('TRUSTED_PROXY_COUNT', default=0),
 }
 
