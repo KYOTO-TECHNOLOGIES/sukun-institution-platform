@@ -32,6 +32,9 @@ BILLING_BUSINESS_NAME = env('BILLING_BUSINESS_NAME', default='Sukun · Kyoto')
 BILLING_BUSINESS_ADDRESS = env('BILLING_BUSINESS_ADDRESS', default='')
 BILLING_SUPPORT_EMAIL = env('BILLING_SUPPORT_EMAIL', default='')
 BILLING_TAX_ID = env('BILLING_TAX_ID', default='')
+OPENAI_API_KEY = env('OPENAI_API_KEY', default='')
+ASSISTANT_MODEL = env('ASSISTANT_MODEL', default='')
+ASSISTANT_DAILY_LIMIT = env.int('ASSISTANT_DAILY_LIMIT', default=100)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
@@ -151,7 +154,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'core.pagination.BoundedPagination',
     'PAGE_SIZE': 20,
-    'DEFAULT_THROTTLE_RATES': {'login': '20/min', 'registration': '10/hour'},
+    'DEFAULT_THROTTLE_RATES': {'login': '20/min', 'registration': '10/hour', 'assistant': '60/hour', 'refresh':'60/min', 'password_change':'10/hour'},
     'NUM_PROXIES': env.int('TRUSTED_PROXY_COUNT', default=0),
 }
 
@@ -210,6 +213,9 @@ LOGGING = {'version':1,'disable_existing_loggers':False,
 # In-memory rooms are for the single local Daphne process only.
 # Redis shares live events across production workers/containers.
 REDIS_URL = env('REDIS_URL', default='')
+CACHES = {'default': ({'BACKEND':'django.core.cache.backends.redis.RedisCache',
+    'LOCATION':env('CACHE_URL', default=REDIS_URL), 'KEY_PREFIX':'sukun-api'} if REDIS_URL else
+    {'BACKEND':'django.core.cache.backends.locmem.LocMemCache','LOCATION':'sukun-api'})}
 if not DEBUG and not REDIS_URL:
     from django.core.exceptions import ImproperlyConfigured
     raise ImproperlyConfigured('Set REDIS_URL for production notification rooms.')

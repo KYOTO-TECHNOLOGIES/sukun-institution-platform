@@ -106,3 +106,14 @@ class BillingEvent(models.Model):
     reason = models.CharField(max_length=500)
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class AssistantUsage(models.Model):
+    institution = models.ForeignKey('institutions.Institution', on_delete=models.PROTECT)
+    date = models.DateField()
+    external_requests = models.PositiveIntegerField(default=0)
+    input_tokens = models.PositiveIntegerField(default=0)
+    output_tokens = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['institution', 'date'], name='assistant_daily_usage_unique')]

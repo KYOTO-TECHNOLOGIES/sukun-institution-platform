@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (PlanViewSet, OrganizationViewSet, InvoiceViewSet, EventViewSet,
     PlatformOverview, SubscriptionView, OwnInvoiceView)
 from .hierarchy import HierarchyView, SetupView
+from .assistant import AssistantView
 
 router = DefaultRouter()
 router.register('plans', PlanViewSet)
@@ -11,6 +12,7 @@ router.register('invoices', InvoiceViewSet)
 router.register('events', EventViewSet)
 
 urlpatterns = [
+    path('assistant/', AssistantView.as_view()),
     path('hierarchy/', HierarchyView.as_view()),
     path('setup/', SetupView.as_view()),
     path('platform/overview/', PlatformOverview.as_view()),

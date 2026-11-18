@@ -40,7 +40,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizationAccount
         fields = '__all__'
-        read_only_fields = ('id', 'institution', 'status', 'suspension_reason', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'institution', 'status', 'suspension_reason', 'external_ai_enabled', 'created_at', 'updated_at')
 
     def validate(self, attrs):
         plan = attrs.get('plan')
