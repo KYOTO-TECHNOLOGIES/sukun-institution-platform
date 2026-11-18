@@ -28,6 +28,7 @@ def config():
     text='# Local demo access\n\nURL: http://127.0.0.1:5173\n\nPassword: '+data['password']+'\n\n'
     text+='\n'.join(role+': +919900001'+str(i).zfill(3) for i,role in enumerate(roles,1))
     text+='\nStudent: +919900002001\n\nThese credentials are for the isolated local demo only.\n'
+    text+='\nSoftware administrator: +919900009001\nConsole: http://127.0.0.1:5173/platform\n'
     (local/'DEMO_ACCESS.md').write_text(text)
     return data
 
@@ -61,10 +62,10 @@ def main():
         subprocess.run([str(PYTHON),'-m','pip','install','-r','requirements.txt'],cwd=BACKEND,check=True)
         if not npm: raise SystemExit('Install Node.js 22 or later first.')
         subprocess.run([npm,'ci'],cwd=FRONTEND,check=True)
-        backend('migrate','--noinput');backend('seed_demo')
+        backend('migrate','--noinput');backend('seed_demo');backend('seed_platform_demo')
         print('Ready. Demo credentials: .local/DEMO_ACCESS.md')
     elif args.command=='seed':
-        backend('migrate','--noinput');backend('seed_demo')
+        backend('migrate','--noinput');backend('seed_demo');backend('seed_platform_demo')
     elif args.command=='migrate': backend('migrate','--noinput')
     elif args.command=='check':
         backend('check'); backend('makemigrations','--check','--dry-run')
