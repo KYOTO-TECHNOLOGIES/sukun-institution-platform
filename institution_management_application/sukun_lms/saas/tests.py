@@ -3,6 +3,7 @@ from datetime import timedelta
 from decimal import Decimal
 from django.core.exceptions import ValidationError as ModelValidationError
 from django.utils import timezone
+from django.test import TransactionTestCase
 from rest_framework.test import APITestCase, APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 from core.test_helpers import institution, admin
@@ -206,6 +207,17 @@ class ControlPlaneTests(APITestCase):
         response = self.client.post(f'/api/saas/platform/organizations/{self.account.pk}/change-status/', {'status':'ACTIVE','reason':'Institution owner verified reopening'})
         self.assertEqual(response.status_code,200)
         self.inst.refresh_from_db(); self.assertTrue(self.inst.is_active)
+
+
+class OrganizationSocketTests(TransactionTestCase):
+    # Channels closes old database connections at async boundaries. These checks
+    # need committed fixtures rather than APITestCase's enclosing transaction.
+    def setUp(self):
+        self.inst = institution('Socket organization')
+        self.admin = admin(self.inst)
+        self.account = OrganizationAccount.objects.create(
+            institution=self.inst, billing_email=self.inst.email, status='ACTIVE',
+            paid_until=timezone.localdate() + timedelta(days=30))
 
     def test_suspended_users_cannot_open_notification_socket(self):
         from asgiref.sync import async_to_sync
