@@ -17,6 +17,9 @@ install -d -o root -g root -m 700 /var/backups/sukun
 install -m 644 scripts/deploy_server.py /usr/local/lib/sukun/deploy_server.py
 install -m 644 compose.yaml /usr/local/lib/sukun/compose.yaml
 install -m 644 deploy/compose.small-server.yaml /usr/local/lib/sukun/deploy/compose.small-server.yaml
+install -m 644 deploy/nginx-sukun-bootstrap.conf.example /usr/local/lib/sukun/deploy/nginx-sukun-bootstrap.conf.example
+install -m 644 deploy/nginx-sukun-domain.conf.example /usr/local/lib/sukun/deploy/nginx-sukun-domain.conf.example
+install -m 755 scripts/enable_https.sh /usr/local/sbin/sukun-enable-https
 ln -sfn /opt/sukun/production.env /usr/local/lib/sukun/deploy/production.env
 printf '%s\n' '#!/bin/sh' 'exec /usr/bin/python3 -I /usr/local/lib/sukun/deploy_server.py "$@"' > /usr/local/sbin/sukun-deploy
 chown root:root /usr/local/sbin/sukun-deploy

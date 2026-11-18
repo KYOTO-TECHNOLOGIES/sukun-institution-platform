@@ -43,7 +43,7 @@ sudo docker version
 sudo docker compose version
 ```
 
-Copy a reviewed checkout's `scripts/deploy_server.py`, `scripts/install_deploy_helper.sh`, `compose.yaml` and `deploy/compose.small-server.yaml` to a temporary directory, preserving their relative paths. From that directory:
+Copy a reviewed checkout's `scripts/deploy_server.py`, `scripts/install_deploy_helper.sh`, `scripts/enable_https.sh`, `compose.yaml`, `deploy/compose.small-server.yaml` and both `deploy/nginx-sukun-*.conf.example` domain/bootstrap templates to a temporary directory, preserving their relative paths. From that directory:
 
 ```sh
 sudo sh scripts/install_deploy_helper.sh
@@ -69,6 +69,14 @@ The workflow is [Deploy production](https://github.com/KYOTO-TECHNOLOGIES/sukun-
 At the DNS provider for `sukunweb.com`, add an A record: name `lms`, value `187.127.171.93`. Remove conflicting records for this name. Do not add an AAAA record unless IPv6 routing and the Nginx listener are configured. If using Cloudflare, begin in DNS-only mode.
 
 Enable only the new hostname's bootstrap configuration from `deploy/nginx-sukun-bootstrap.conf.example`, leaving existing sites intact. Use Certbot **webroot** with `/var/www/sukun-acme`; never stop the shared Nginx for standalone certificate issuance. After the certificate exists, replace just the Sukun site with `deploy/nginx-sukun-domain.conf.example`, test `sudo nginx -t`, and reload Nginx. Configure a Certbot deploy hook to validate/reload Nginx on renewal. The full commands and rollback precautions are in the [shared-server guide](SHARED_SERVER_DEPLOYMENT.md).
+
+On this server, Certbot already has an account from the existing HTTPS sites. Once DNS resolves to the server, the installed setup helper performs these steps with the reviewed templates:
+
+```sh
+sudo /usr/local/sbin/sukun-enable-https
+```
+
+Use `--bootstrap-only` to prepare the HTTP challenge site while waiting for DNS. It returns a maintenance response for Sukun and does not change existing sites. The helper refuses to overwrite an unrecognized Sukun configuration. A new server without an existing Certbot account must first register one using its administrator's email.
 
 The private container health check can pass before DNS/TLS is ready. Public launch requires all three: successful Actions deployment, correct DNS, and a valid HTTPS certificate.
 
