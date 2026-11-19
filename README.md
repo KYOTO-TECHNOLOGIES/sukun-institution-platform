@@ -2,7 +2,7 @@
 
 An institution management and learning platform built with Django REST Framework, React, TypeScript and PostgreSQL. The repository contains the original application plus the implemented institution workflows and redesigned role-based workspace.
 
-**Server setup and next steps:** Read the [production deployment handover](README_DEPLOYMENT.md) for what was installed on the shared server, the last verified deployment status, the remaining DNS/HTTPS and software-administrator setup, and how to publish updates through GitHub Actions.
+**Server setup and next steps:** The HTTPS login is available at **https://lms.sukunweb.com**. Read the [production deployment handover](README_DEPLOYMENT.md) for the verified deployment status, completed DNS/HTTPS setup, remaining software-administrator onboarding, and how to publish updates through GitHub Actions.
 
 ## Run locally
 

@@ -1,14 +1,16 @@
 # Production deployment handover
 
-This README records the setup completed on **18 November 2026** and the remaining steps to launch **https://lms.sukunweb.com**. For the full deployment procedure, see [Actions deployment](docs/ACTIONS_DEPLOYMENT.md).
+This README records the server setup from **18 November 2026**, the DNS/HTTPS launch completed on **19 November 2026**, and the remaining administrator and institution onboarding steps. Open **https://lms.sukunweb.com**. For the full deployment procedure, see [Actions deployment](docs/ACTIONS_DEPLOYMENT.md).
 
 ## Current position
 
-The application has been deployed through GitHub Actions and is healthy on the server's private address, **127.0.0.1:18080**. Public HTTPS is **not yet enabled**. The temporary page saying `Sukun HTTPS setup is in progress.` is the host Nginx bootstrap page, not the LMS frontend.
+The application is deployed through GitHub Actions and available at **https://lms.sukunweb.com/login**. Host Nginx proxies HTTPS to the private frontend at **127.0.0.1:18080**. The temporary setup page has been replaced by the application, and HTTP redirects to HTTPS.
 
-The last confirmed successful deployment is application commit `1648e24`, from [this successful Actions run](https://github.com/KYOTO-TECHNOLOGIES/sukun-institution-platform/actions/runs/44304813449). The Docker compatibility fix in `098a9e6` is installed in the server's deployment helper; its [follow-up production run](https://github.com/KYOTO-TECHNOLOGIES/sukun-institution-platform/actions/runs/44307069094) was still running when this handover was prepared. For the current deployed commit, use the status command below rather than assuming this dated snapshot is current.
+The last confirmed successful deployment is application commit `098a9e6`, including the Docker compatibility fix, from [this successful Actions run](https://github.com/KYOTO-TECHNOLOGIES/sukun-institution-platform/actions/runs/44307069094). For the current deployed commit, use the status command below rather than assuming this dated snapshot is current.
 
-At the last DNS check, the active nameservers were `ns1.dns-parking.com` and `ns2.dns-parking.com`, and neither published an A record for `lms.sukunweb.com`. The record shown in the registrar's DNS panel had the correct value, but it had not appeared in the active Hostinger zone.
+The active Hostinger nameservers, `ns1.dns-parking.com` and `ns2.dns-parking.com`, now publish `lms.sukunweb.com A 187.127.171.93`. The server and Cloudflare DNS resolve it correctly. Some recursive resolvers were still caching the earlier missing-record response during launch; those caches must expire before affected clients can resolve the hostname.
+
+Let's Encrypt issued the HTTPS certificate on 19 November 2026; its initial expiry is **17 February 2027**. The Certbot renewal timer is active and the Sukun Nginx renewal hook is installed. Public HTTPS health checks and a Chromium login-page check passed with certificate validation enabled. The browser check used the verified server IP to bypass the workstation's stale DNS cache; no certificate checks were disabled.
 
 No production software administrator has been created by this setup. Production has not been seeded with demo institutions or demo accounts. External AI and payment gateway credentials are empty.
 
@@ -38,14 +40,14 @@ These limits are an initial operating configuration, not a load-test result or a
 
 **Pushing `main` runs verification only. It does not deploy the server.** To release main's changes, merge them into `production` and push that branch. This handover and the production implementation have been brought into `main` so the default branch contains the setup and instructions.
 
-### Nginx and HTTPS preparation
+### Nginx and HTTPS
 
-- Installed the dedicated Sukun bootstrap site in `/etc/nginx/sites-available/sukun-lms` and enabled its symlink.
-- Prepared the final `lms.sukunweb.com` HTTPS configuration and `/usr/local/sbin/sukun-enable-https` setup helper.
+- Installed the dedicated Sukun site in `/etc/nginx/sites-available/sukun-lms` and enabled its symlink. It now uses the final HTTPS configuration.
+- Issued and installed the `lms.sukunweb.com` certificate with `/usr/local/sbin/sukun-enable-https` after DNS became available.
 - Verified that public port 80 reaches the correct certificate challenge webroot, `/var/www/sukun-acme`.
-- Confirmed the existing Certbot renewal timer is active. The HTTPS helper installs Sukun's Nginx renewal hook after certificate issuance.
+- Confirmed the existing Certbot renewal timer is active and installed Sukun's Nginx renewal hook.
 
-The server's bare IP currently falls through to the temporary Sukun setup page. That page confirms access to Nginx; it does not mean DNS, HTTPS or application login is ready.
+The supported public address is the HTTPS hostname. The earlier bare-IP setup page was only a bootstrap response while DNS and the certificate were pending.
 
 ### Fixes and validation
 
@@ -54,8 +56,11 @@ The server's bare IP currently falls through to the temporary Sukun setup page. 
 - All 111 backend tests passed locally and in the successful PostgreSQL CI run. Frontend type checking, build, browser tests and production-container checks passed in that run.
 - All 14 deployment/helper tests passed locally after the Docker compatibility fix.
 - Verified HTTP 200 responses from the private frontend, `/health/`, `/api/auth/csrf/` and `/static/core/receipt.js`, including the secure CSRF cookie setting.
+- After enabling HTTPS, verified the HTTP-to-HTTPS redirect, public health response, visible sign-in form, secure CSRF cookie and absence of browser JavaScript errors. Existing application responses and service states still matched the pre-installation baseline.
 
 ## What to do next
+
+**DNS and HTTPS (steps 1 and 2) are complete. Continue with step 3 to create your software administrator.** The DNS/HTTPS instructions remain here for future reference.
 
 ### 1. Add the record in the active DNS zone
 
@@ -151,7 +156,7 @@ Normal application releases need no manual source copy to the server and no `.de
 
 ## Useful status commands
 
-Check the private application now, even while DNS/HTTPS is unfinished, from **local PowerShell**:
+Check the private application independently of public DNS from **local PowerShell**:
 
 ```powershell
 ssh django_user@187.127.171.93 "curl -fsS http://127.0.0.1:18080/health/"
